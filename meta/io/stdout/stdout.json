@@ -1,0 +1,13 @@
+{
+  "id" : "STDOUT",
+  "inputPorts" : [ "input" ],
+  "outputPorts" : [ ],
+  "atomic" : true,
+  "meta" : {
+    "golang" : { },
+  },
+  "implementation" : {
+    "golang" : "golang/io/stdout/stdoutProcess.go"
+  },
+  "dependencies" : ["fmt"]
+}

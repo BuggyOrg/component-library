@@ -1,0 +1,19 @@
+{
+  "name": "component-library",
+  "version": "0.1.0",
+  "description": "file system for atomics and other components",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/BuggyOrg/component-library.git"
+  },
+  "author": "Georg Schuppe",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/BuggyOrg/component-library/issues"
+  },
+  "homepage": "https://github.com/BuggyOrg/component-library#readme"
+}
