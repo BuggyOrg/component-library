@@ -4,7 +4,7 @@
   "description": "file system for atomics and other components",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node node_modules/standard/bin/cmd.js src/**/*.js && gulp && node_modules/mocha/bin/mocha --compilers js:babel/register"
   },
   "repository": {
     "type": "git",
@@ -12,6 +12,17 @@
   },
   "author": "Georg Schuppe",
   "license": "MIT",
+  "dependencies": {
+    "glob": "^6.0.1"
+  },
+  "devDependencies": {
+    "babel": "^5.8.29",
+    "chai": "^3.4.1",
+    "gulp": "^3.9.0",
+    "gulp-babel": "^5.3.0",
+    "mocha": "^2.3.3",
+    "standard": "^5.3.1"
+  },
   "bugs": {
     "url": "https://github.com/BuggyOrg/component-library/issues"
   },

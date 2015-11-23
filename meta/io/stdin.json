@@ -1,5 +1,6 @@
 {
-  "id" : "STDIN",
+  "name" : "STDIN",
+  "id" : "io/stdin",
   "inputPorts" : [ ],
   "outputPorts" : [ "output" ],
   "atomic" : true,
@@ -9,7 +10,9 @@
     }
   },
   "implementation" : {
-    "golang" : "golang/io/stdin/stdinProcess.go"
+    "golang" : "./golang/io/stdinProcess.go"
   },
-  "dependencies" : ["sync", "fmt"]
+  "dependencies" : {
+    "golang" : ["fmt", "sync"]
+  }
 }

@@ -1,0 +1,13 @@
+{
+  "name" : "string_to_int",
+  "id" : "translator/string_to_int",
+  "inputPorts" : [ "input" ],
+  "outputPorts" : [ "output" ],
+  "atomic" : true,
+  "implementation" : {
+    "golang" : "./golang/translator/string_to_int_process.go"
+  },
+  "dependencies" : {
+    "golang" : ["strconv"]
+  }
+}

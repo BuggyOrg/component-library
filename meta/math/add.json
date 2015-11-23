@@ -1,0 +1,13 @@
+{
+  "name" : "ADD",
+  "id" : "math/add",
+  "inputPorts" : [ "s1", "s2" ],
+  "outputPorts" : [ "output" ],
+  "atomic" : true,
+  "implementation" : {
+    "golang" : "./golang/io/stdoutProcess.go"
+  },
+  "dependencies" : {
+    "golang" : []
+  }
+}
