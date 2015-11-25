@@ -1,8 +1,10 @@
 {
   "name" : "STDIN",
   "id" : "io/stdin",
-  "inputPorts" : [ ],
-  "outputPorts" : [ "output" ],
+  "inputPorts" : { },
+  "outputPorts" : {
+    "output" : "string"
+  },
   "atomic" : true,
   "meta" : {
     "golang" : {

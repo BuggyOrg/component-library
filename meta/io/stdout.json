@@ -1,8 +1,10 @@
 {
   "name" : "STDOUT",
   "id" : "io/stdout",
-  "inputPorts" : [ "input" ],
-  "outputPorts" : [ ],
+  "inputPorts" : {
+    "input" : "string"
+  },
+  "outputPorts" : { },
   "atomic" : true,
   "implementation" : {
     "golang" : "./golang/io/stdoutProcess.go"

@@ -10,17 +10,17 @@ describe('Component Library', function () {
     expect(allMetaPaths).to.deep.equal([ './meta/io/stdin.json',
                                             './meta/io/stdout.json',
                                             './meta/math/add.json',
+                                            './meta/math/inc.json',
                                             './meta/translator/int_to_string.json',
                                             './meta/translator/string_to_int.json' ])
-
-    // expect(allProcessNames).to.deep.equal([ 'STDIN', 'STDOUT', 'ADD', 'int_to_string', 'string_to_int' ])
   })
 
   it('getMetaFromPath', function () {
     var meta = api.getMetaFromPath('./meta/io/stdin.json')
     expect(meta).to.deep.equal({name: 'STDIN',
                                 id: 'io/stdin',
-                                inputPorts: [], outputPorts: [ 'output' ],
+                                inputPorts: { },
+                                outputPorts: { output: 'string' },
                                 atomic: true,
                                 meta: { golang: { needsWaitGroup: true } },
                                 implementation: { golang: './golang/io/stdinProcess.go' },
@@ -29,13 +29,14 @@ describe('Component Library', function () {
 
   it('getComponentLibrary', function () {
     var compLib = api.getComponentLibrary()
-    expect(compLib['io/stdin']).to.deep.equal({name: 'STDIN',
-                                id: 'io/stdin',
-                                inputPorts: [], outputPorts: [ 'output' ],
-                                atomic: true,
-                                meta: { golang: { needsWaitGroup: true } },
-                                implementation: { golang: './golang/io/stdinProcess.go' },
-                                dependencies: { golang: [ 'fmt', 'sync' ] } })
+    expect(compLib['io/stdin']).to.deep.equal({ name: 'STDIN',
+                                                id: 'io/stdin',
+                                                inputPorts: { },
+                                                outputPorts: { output: 'string' },
+                                                atomic: true,
+                                                meta: { golang: { needsWaitGroup: true } },
+                                                implementation: { golang: './golang/io/stdinProcess.go' },
+                                                dependencies: { golang: [ 'fmt', 'sync' ] } })
   })
 
   it('getCode', function () {

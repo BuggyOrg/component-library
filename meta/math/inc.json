@@ -1,16 +1,15 @@
 {
-  "name" : "ADD",
-  "id" : "math/add",
+  "name" : "INC",
+  "id" : "math/inc",
   "inputPorts" : {
-    "s1" : "int",
-    "s2" : "int"
+    "i" : "int"
   },
   "outputPorts" : {
-    "sum" : "int"
+    "inc" : "int"
   },
   "atomic" : true,
   "implementation" : {
-    "golang" : "./golang/math/addProcess.go"
+    "golang" : "./golang/math/incProcess.go"
   },
   "dependencies" : {
     "golang" : []
