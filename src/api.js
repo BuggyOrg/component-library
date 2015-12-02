@@ -3,7 +3,7 @@ import glob from 'glob'
 
 var api = {
   getAllMetaPaths: function () {
-    return glob.sync('./meta/**/*.json')
+    return glob.sync(__dirname + '/../meta/**/*.json')
   },
 
   getMetaFromPath: function (path) {
