@@ -1,9 +1,11 @@
 import {readFileSync} from 'fs'
 import glob from 'glob'
+import {join} from path
 
 var api = {
-  getAllMetaPaths: function () {
-    return glob.sync(__dirname + '/../meta/**/*.json')
+  getAllMetaPaths: function (path) {
+    path = path || join(__dirname, '/../meta')
+    return glob.sync(join(path, "/**/*.json"))
   },
 
   getMetaFromPath: function (path) {
