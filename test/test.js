@@ -7,7 +7,10 @@ import {readFileSync} from 'fs'
 describe('Component Library', function () {
   it('getAllMetaPaths', function () {
     var allMetaPaths = api.getAllMetaPaths('./test/fixtures/meta')
-    expect(allMetaPaths).to.deep.equal([ './...' ])
+    expect(allMetaPaths).to.deep.equal([ 'test/fixtures/meta/io/stdin.json',
+                                         'test/fixtures/meta/io/stdout.json',
+                                         'test/fixtures/meta/math/inc.json' ]
+ )
   })
 
   it('getMetaFromPath', function () {

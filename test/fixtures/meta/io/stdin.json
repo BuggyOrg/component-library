@@ -1,0 +1,20 @@
+{
+  "name" : "STDIN",
+  "id" : "io/stdin",
+  "inputPorts" : { },
+  "outputPorts" : {
+    "output" : "string"
+  },
+  "atomic" : true,
+  "meta" : {
+    "golang" : {
+      "needsWaitGroup" : true
+    }
+  },
+  "implementation" : {
+    "golang" : "./golang/io/stdinProcess.go"
+  },
+  "dependencies" : {
+    "golang" : ["fmt", "sync"]
+  }
+}

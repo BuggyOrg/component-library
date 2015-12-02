@@ -1,0 +1,17 @@
+{
+  "name" : "INC",
+  "id" : "math/inc",
+  "inputPorts" : {
+    "i" : "int"
+  },
+  "outputPorts" : {
+    "inc" : "int"
+  },
+  "atomic" : true,
+  "implementation" : {
+    "golang" : "./golang/math/incProcess.go"
+  },
+  "dependencies" : {
+    "golang" : []
+  }
+}
