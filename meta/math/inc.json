@@ -7,11 +7,9 @@
   "outputPorts" : {
     "inc" : "int"
   },
-  "atomic" : true,
-  "implementation" : {
-    "golang" : "./golang/math/incProcess.go"
-  },
+  "atomic" : false,
   "dependencies" : {
+    "meta" : ["math/add", "math/const1"],
     "golang" : []
   }
 }

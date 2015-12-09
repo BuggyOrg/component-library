@@ -1,0 +1,15 @@
+{
+  "name" : "CONST1",
+  "id" : "math/const-one",
+  "inputPorts" : { },
+  "outputPorts" : {
+    "const1" : "int"
+  },
+  "atomic" : true,
+  "implementation" : {
+    "golang" : "./golang/math/const1process.go"
+  },
+  "dependencies" : {
+    "golang" : []
+  }
+}
