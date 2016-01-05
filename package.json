@@ -1,6 +1,6 @@
 {
   "name": "@buggyorg/component-library",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "file system for atomics and other components",
   "main": "lib/api.js",
   "scripts": {
