@@ -1,6 +1,6 @@
 {
   "name" : "CONST1",
-  "id" : "math/const-one",
+  "id" : "math/const1",
   "inputPorts" : { },
   "outputPorts" : {
     "const1" : "int"
