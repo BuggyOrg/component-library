@@ -1,10 +1,10 @@
 {
   "name": "@buggyorg/component-library",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "file system for atomics and other components",
   "main": "lib/api.js",
-  "bin" : {
-    "buggy-library" : "./lib/cli.js"
+  "bin": {
+    "buggy-library": "./lib/cli.js"
   },
   "scripts": {
     "test": "node node_modules/standard/bin/cmd.js src/**/*.js && gulp && node_modules/mocha/bin/mocha --compilers js:babel/register"
