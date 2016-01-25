@@ -27,6 +27,7 @@ export function getComponentLibrary () {
 }
 
 export function getCode (id, language, componentLibrary) {
-  var codePath = componentLibrary[id]['implementation'][language]
-  return readFileSync(codePath, 'utf8')
+  var codePath = '/../' + componentLibrary[id]['implementation'][language]
+  var path = join(__dirname, codePath)
+  return readFileSync(path, 'utf8')
 }
