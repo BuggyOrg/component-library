@@ -7,7 +7,7 @@
     "buggy-library": "./lib/cli.js"
   },
   "scripts": {
-    "test": "node node_modules/standard/bin/cmd.js src/**/*.js && gulp && node_modules/.bin/babel-node scripts/setup_elastic.js && node_modules/mocha/bin/mocha --compilers js:babel/register"
+    "test": "node node_modules/standard/bin/cmd.js src/**/*.js && gulp && node_modules/.bin/babel-node scripts/setup_elastic.js && node_modules/mocha/bin/mocha --compilers js:babel-register --require babel-polyfill"
   },
   "repository": {
     "type": "git",
@@ -19,7 +19,8 @@
     "commander": "^2.9.0",
     "elasticsearch": "^10.1.3",
     "glob": "^6.0.1",
-    "lodash": "^4.0.0"
+    "lodash": "^4.0.0",
+    "semver": "^5.1.0"
   },
   "devDependencies": {
     "babel": "^6.3.26",
