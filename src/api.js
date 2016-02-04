@@ -75,6 +75,10 @@ export function connect (host, prefix = '') {
         .then(mapHits)
     },
 
+    flush: () => {
+      return client.indices.refresh({index: prefix + 'meta'})
+    },
+
     statistics: () => {
       return Promise.all(
         [
@@ -93,7 +97,7 @@ export function connect (host, prefix = '') {
           body: node
         })
       } else {
-        throw new Error(isValid.error)
+        return Promise.reject(isValid.error)
       }
     },
 
