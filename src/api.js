@@ -49,12 +49,18 @@ const valid = (obj) => {
   }
 }
 
+var normalizeNode = function (node) {
+  var normNode = _.clone(node)
+  normNode.verion = semver.clean(node.version)
+  return normNode
+}
+
 export function connect (host, prefix = '') {
   var client = new elastic.Client({
     host: host
   })
 
-  return {
+  var api = {
     isConnected: () => {
       return client.ping()
     },
@@ -75,6 +81,30 @@ export function connect (host, prefix = '') {
         .then(mapHits)
     },
 
+    list: id => {
+      return client.search(
+        {
+          index: prefix + 'meta',
+          type: id
+        })
+        .then(extractHits)
+        .then(mapHits)
+    },
+
+    get: (id, version) => {
+      return client.get(
+        {
+          index: prefix + 'meta',
+          id: id + '@' + semver.clean(version)
+        }
+      )
+    },
+
+    versions: id => {
+      return api.list(id)
+        .then(_.partial(_.map, _, (s) => s.version))
+    },
+
     flush: () => {
       return client.indices.refresh({index: prefix + 'meta'})
     },
@@ -91,10 +121,12 @@ export function connect (host, prefix = '') {
     put: node => {
       var isValid = valid(node)
       if (isValid.valid === true) {
-        return client.index({
+        var normNode = normalizeNode(node)
+        return client.create({
           index: prefix + 'meta',
-          type: node.id,
-          body: node
+          type: normNode.id,
+          id: normNode.id + '@' + normNode.version,
+          body: normNode
         })
       } else {
         return Promise.reject(isValid.error)
@@ -119,16 +151,17 @@ export function connect (host, prefix = '') {
       if (prefix === '') {
         throw new Error('Will not clear unprefixed Database')
       } else {
-        return client
-          .search({index: prefix + 'meta', q: '*'})
+        return api.flush()
+          .then(() => client.search({index: prefix + 'meta', q: '*'}))
           .then((v) => {
             v.hits.hits.forEach((v) => {
               client.delete({index: prefix + 'meta', type: v._type, id: v._id})
             })
           })
+          .then(() => api.flush())
       }
-    },
-
-    esSearch: () => { return client.search }
+    }
   }
+
+  return api
 }

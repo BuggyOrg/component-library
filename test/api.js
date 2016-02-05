@@ -31,7 +31,6 @@ describe('Component library elastic interface', () => {
       .then((items) => {
         expect(items).to.have.length(1)
       })
-      .catch((err) => console.error(err))
   })
 
   it('errors if the node does not contain an id', () => {
@@ -51,5 +50,26 @@ describe('Component library elastic interface', () => {
       id: 'test/node',
       version: '0.0.0.1'
     })).to.be.rejected
+  })
+
+  it('is not possible to store a node with the same version twice', () => {
+    return expect(Promise.all([
+      test.client.put({id: 'test/node', version: '0.0.1'}),
+      test.client.put({id: 'test/node', version: '0.0.1'})
+    ])).to.be.rejected
+  })
+
+  it('can list all versions of a node', () => {
+    return Promise.all([
+      test.client.put({id: 'test/node', version: '0.0.1'}),
+      test.client.put({id: 'test/node', version: '0.0.2'}),
+      test.client.put({id: 'test2/node', version: '0.0.1'})
+    ])
+      // flush the database to ensure the newly put value is in the search index
+      .then(() => { return test.client.flush() })
+      .then(() => { return test.client.versions('test/node') })
+      .then((versions) => {
+        expect(versions).to.have.length(2)
+      })
   })
 })
