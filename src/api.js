@@ -101,6 +101,20 @@ export function connect (host, prefix = '') {
       }
     },
 
+    init: () => {
+      var indices = ['meta']
+      return Promise.all(
+        _.map(indices, i => client.indices.exists({index: prefix + i}))
+      ).then((ex) => {
+        var createIndices = _(ex).chain()
+          .zip(indices)
+          .reject(zipped => zipped[0])
+          .map(zipped => client.indices.create({index: prefix + zipped[1]}))
+          .value()
+        return Promise.all(createIndices)
+      })
+    },
+
     clear: () => {
       if (prefix === '') {
         throw new Error('Will not clear unprefixed Database')

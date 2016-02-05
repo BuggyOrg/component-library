@@ -11,7 +11,7 @@ describe('Component library elastic interface', () => {
   var test = {client: null}
   beforeEach(() => {
     test.client = api.connect('localhost:9200', 'tests_')
-    return test.client.clear()
+    return test.client.init().then(() => { return test.client.clear() })
   })
 
   it('should be initialized with an empty database', function () {
