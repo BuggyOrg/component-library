@@ -1,39 +1,8 @@
 /* global __dirname */
 
-import {readFileSync} from 'fs'
-import glob from 'glob'
-import {join} from 'path'
 import * as elastic from 'elasticsearch'
 import _ from 'lodash'
 import semver from 'semver'
-
-export function getAllMetaPaths (path) {
-  path = path || join(__dirname, '/../meta')
-  return glob.sync(join(path, '/**/*.json'))
-}
-
-export function getMetaFromPath (path) {
-  return JSON.parse(readFileSync(path, 'utf8'))
-}
-
-export function getComponentLibrary () {
-  var paths = getAllMetaPaths()
-  var lib = {}
-
-  for (var i = 0; i < paths.length; i++) {
-    var path = paths[i]
-    var meta = getMetaFromPath(path)
-    lib[meta.id] = meta
-  }
-
-  return lib
-}
-
-export function getCode (id, language, componentLibrary) {
-  var codePath = '/../' + componentLibrary[id]['implementation'][language]
-  var path = join(__dirname, codePath)
-  return readFileSync(path, 'utf8')
-}
 
 const extractHits = _.partial(_.get, _, 'hits.hits')
 const mapHits = _.partial(_.map, _, _.partial(_.get, _, '_source'))
@@ -49,16 +18,31 @@ const valid = (obj) => {
   }
 }
 
-var normalizeNode = function (node) {
+const normalizeNode = function (node) {
   var normNode = _.clone(node)
   normNode.verion = semver.clean(node.version)
   return normNode
+}
+
+const clearIndex = function (api, client, index) {
+  return api.flush()
+    .then(() => client.search({index: index, q: '*'}))
+    .then((v) => {
+      v.hits.hits.forEach((v) => {
+        client.delete({index: index, type: v._type, id: v._id})
+      })
+    })
+    .then(() => api.flush())
 }
 
 export function connect (host, prefix = '') {
   var client = new elastic.Client({
     host: host
   })
+
+  const nodesIndex = prefix + '_nodes'
+  const metaIndex = prefix + '_meta'
+  const indices = [nodesIndex, metaIndex]
 
   var api = {
     isConnected: () => {
@@ -68,7 +52,7 @@ export function connect (host, prefix = '') {
     query: id => {
       return client.search(
         {
-          index: prefix + 'meta',
+          index: nodesIndex,
           body: {
             query: {
               match: {
@@ -84,7 +68,7 @@ export function connect (host, prefix = '') {
     list: id => {
       return client.search(
         {
-          index: prefix + 'meta',
+          index: nodesIndex,
           type: id
         })
         .then(extractHits)
@@ -94,7 +78,7 @@ export function connect (host, prefix = '') {
     get: (id, version) => {
       return client.get(
         {
-          index: prefix + 'meta',
+          index: nodesIndex,
           id: id + '@' + semver.clean(version)
         }
       )
@@ -106,13 +90,13 @@ export function connect (host, prefix = '') {
     },
 
     flush: () => {
-      return client.indices.refresh({index: prefix + 'meta'})
+      return Promise.all(_.map(indices, i => client.indices.refresh({index: i})))
     },
 
     statistics: () => {
       return Promise.all(
         [
-          client.count({index: prefix + 'meta'})
+          client.count({index: nodesIndex})
         ]).then((count) => {
           return {nodeCount: count}
         })
@@ -123,7 +107,7 @@ export function connect (host, prefix = '') {
       if (isValid.valid === true) {
         var normNode = normalizeNode(node)
         return client.create({
-          index: prefix + 'meta',
+          index: nodesIndex,
           type: normNode.id,
           id: normNode.id + '@' + normNode.version,
           body: normNode
@@ -134,14 +118,13 @@ export function connect (host, prefix = '') {
     },
 
     init: () => {
-      var indices = ['meta']
       return Promise.all(
-        _.map(indices, i => client.indices.exists({index: prefix + i}))
+        _.map(indices, i => client.indices.exists({index: i}))
       ).then((ex) => {
         var createIndices = _(ex).chain()
           .zip(indices)
           .reject(zipped => zipped[0])
-          .map(zipped => client.indices.create({index: prefix + zipped[1]}))
+          .map(zipped => client.indices.create({index: zipped[1]}))
           .value()
         return Promise.all(createIndices)
       })
@@ -151,14 +134,7 @@ export function connect (host, prefix = '') {
       if (prefix === '') {
         throw new Error('Will not clear unprefixed Database')
       } else {
-        return api.flush()
-          .then(() => client.search({index: prefix + 'meta', q: '*'}))
-          .then((v) => {
-            v.hits.hits.forEach((v) => {
-              client.delete({index: prefix + 'meta', type: v._type, id: v._id})
-            })
-          })
-          .then(() => api.flush())
+        return Promise.all(_.map(indices, i => clearIndex(api, client, i)))
       }
     }
   }

@@ -9,7 +9,8 @@ var expect = chai.expect
 
 describe('Component library elastic interface', () => {
   var test = {client: null}
-  beforeEach(() => {
+  beforeEach(function () {
+    this.timeout(10000)
     test.client = api.connect('localhost:9200', 'tests_')
     return test.client.init().then(() => { return test.client.clear() })
   })
