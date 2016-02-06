@@ -7,6 +7,9 @@ import zlib from 'zlib'
 import tar from 'tar'
 import child_process from 'child_process'
 import processExists from 'process-exists'
+import rimraf from 'rimraf'
+import kill from './kill'
+import chalk from 'chalk'
 
 var establishConnection = function () {
   return new Promise((resolve, reject) => {
@@ -34,8 +37,15 @@ var establishConnection = function () {
           var contents = fs.readFileSync(__dirname + '/.download/running.pid', 'utf8')
           processExists(Number(contents)).then(exists => {
             if (exists) {
-              console.log('elastic search already running with PID: ', contents)
-              resolve({client: new elastic.Client({host: 'localhost:9200'})})
+              console.log('elastic search already running with PID, ' + chalk.red('killing it: '), contents)
+              kill(Number(contents), 'SIGTERM').then(() => {
+                console.log(chalk.yellow('removing old data at ' + __dirname + '/.download/elastic/data/elasticsearch'))
+                fs.unlinkSync(__dirname + '/.download/running.pid')
+                rimraf(__dirname + '/.download/elastic/data/elasticsearch', () => {
+                  console.log('starting new server')
+                  startServer()
+                })
+              })
             } else {
               console.log('elastic search not yet running [old PID: ', contents, ']')
               startServer()
@@ -72,16 +82,17 @@ var establishConnection = function () {
 establishConnection().then(({client, instance}) => {
   client.ping()
     .then(function () {
-      console.log('successful pinged')
+      console.log(chalk.bold(chalk.green('elastic server is up and running')))
       if (instance) {
         instance.unref()
         process.exit(0)
       }
     })
     .catch(function () {
-      console.log('could not ping elastic server')
+      console.error(chalk.red('could not ping elastic server'))
       if (instance) {
         instance.kill()
       }
+      process.exit(-1)
     })
 })
