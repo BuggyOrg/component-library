@@ -82,14 +82,26 @@ var establishConnection = function () {
 establishConnection().then(({client, instance}) => {
   client.ping()
     .then(function () {
-      console.log(chalk.bold(chalk.green('elastic server is up and running')))
+      return client.indices.refresh()
+    })
+    .then(function () {
+      return client.cluster.health()
+    })
+    .then(function (health) {
+      if (health.status === 'green') {
+        console.log(chalk.bold(chalk.green('Elastic server is running and healthy')))
+      } else {
+        console.log(chalk.bold(chalk.green('Elastic server is running but has some issues')))
+        console.log(chalk.bgYellow('Elastic Cluster Health:'))
+        console.log(health)
+      }
       if (instance) {
         instance.unref()
         process.exit(0)
       }
     })
     .catch(function () {
-      console.error(chalk.red('could not ping elastic server'))
+      console.error(chalk.red('Could not verify elastic server instance'))
       if (instance) {
         instance.kill()
       }
