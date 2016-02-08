@@ -2,9 +2,9 @@ language: node_js
 node_js:
   - "4"
   - "5"
-services:
-  - "elasticsearch"
-before_script:
-  - sleep 10
+#services:
+#  - "elasticsearch"
+#before_script:
+#  - sleep 10
 after_failure:
   - curl 'localhost:9200/_cat/health?v'

@@ -1,5 +1,4 @@
 /* global process, __dirname */
-import isCi from 'is-ci'
 import * as elastic from 'elasticsearch'
 import fs from 'fs'
 import Download from 'download'
@@ -10,6 +9,8 @@ import processExists from 'process-exists'
 import rimraf from 'rimraf'
 import kill from './kill'
 import chalk from 'chalk'
+
+var isCi = false
 
 var establishConnection = function () {
   return new Promise((resolve, reject) => {
