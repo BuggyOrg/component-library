@@ -9,6 +9,8 @@ import processExists from 'process-exists'
 import rimraf from 'rimraf'
 import kill from './kill'
 import chalk from 'chalk'
+import * as yaml from 'yamljs'
+import _ from 'lodash'
 
 var isCi = false
 
@@ -26,6 +28,11 @@ var establishConnection = function () {
     } else {
       const runServer = () => {
         const startServer = () => {
+          var conf = yaml.parse(fs.readFileSync(__dirname + '/.download/elastic/config/elasticsearch.yml', 'utf8')) || {}
+          _.set(conf, 'script.groovy.sandbox.enabled', true)
+          _.set(conf, 'script.inline', 'sandbox')
+          _.set(conf, 'script.engine.groovy.inline.update', 'on')
+          fs.writeFileSync(__dirname + '/.download/elastic/config/elasticsearch.yml', yaml.stringify(conf, 2))
           var elasticInstance = child_process.spawn(__dirname + '/.download/elastic/bin/elasticsearch', {detached: true})
           fs.writeFileSync(__dirname + '/.download/running.pid', elasticInstance.pid)
           elasticInstance.stdout.on('data', (data) => {

@@ -16,11 +16,14 @@
   "author": "Georg Schuppe",
   "license": "MIT",
   "dependencies": {
+    "chalk": "^1.1.1",
     "commander": "^2.9.0",
     "elasticsearch": "^10.1.3",
+    "get-stdin": "^5.0.1",
     "glob": "^6.0.1",
     "lodash": "^4.0.0",
-    "semver": "^5.1.0"
+    "semver": "^5.1.0",
+    "tempfile": "^1.1.1"
   },
   "devDependencies": {
     "babel": "^6.3.26",
@@ -30,7 +33,6 @@
     "babel-register": "^6.4.3",
     "chai": "^3.4.1",
     "chai-as-promised": "^5.2.0",
-    "chalk": "^1.1.1",
     "download": "^4.4.3",
     "gulp": "^3.9.0",
     "gulp-babel": "^6.1.2",
@@ -40,7 +42,8 @@
     "ps-tree": "^1.0.1",
     "rimraf": "^2.5.1",
     "standard": "^5.3.1",
-    "tar": "^2.2.1"
+    "tar": "^2.2.1",
+    "yamljs": "^0.2.4"
   },
   "bugs": {
     "url": "https://github.com/BuggyOrg/component-library/issues"

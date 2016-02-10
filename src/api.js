@@ -5,7 +5,8 @@ import _ from 'lodash'
 import semver from 'semver'
 
 const extractHits = _.partial(_.get, _, 'hits.hits')
-const mapHits = _.partial(_.map, _, _.partial(_.get, _, '_source'))
+const getSource = _.partial(_.get, _, '_source')
+const mapHits = _.partial(_.map, _, getSource)
 const valid = (obj) => {
   if (!obj.id) {
     return {error: 'Node must have a meta-id', valid: false}
@@ -40,9 +41,13 @@ export function connect (host, prefix = '') {
     host: host
   })
 
-  const nodesIndex = prefix + '_nodes'
-  const metaIndex = prefix + '_meta'
-  const indices = [nodesIndex, metaIndex]
+  if (prefix.length !== 0) {
+    prefix += '_'
+  }
+  const nodesIndex = prefix + 'nodes'
+  const metaIndex = prefix + 'meta'
+  const configIndex = prefix + 'configuration'
+  const indices = [nodesIndex, metaIndex, configIndex]
 
   var api = {
     isConnected: () => {
@@ -87,6 +92,71 @@ export function connect (host, prefix = '') {
     versions: id => {
       return api.list(id)
         .then(_.partial(_.map, _, (s) => s.version))
+    },
+
+    setMeta: (node, validity, dataId, meta) => {
+      return client.create({
+        index: metaIndex,
+        type: node,
+        id: node + '_' + dataId,
+        body: {
+          elements: []
+        }
+      })
+      .then(() => client.update({
+        index: metaIndex,
+        type: node,
+        id: node + '_' + dataId,
+        body: {
+          script: 'ctx._source.elements += element',
+          params: {
+            element: {
+              validity: validity,
+              id: dataId,
+              meta: meta
+            }
+          }
+        }
+      }))
+    },
+
+    getMeta: (node, dataId, version) => {
+      return client.get(
+        {
+          index: metaIndex,
+          type: node,
+          id: node + '_' + dataId
+        }
+      )
+        .then(getSource)
+        .then((meta) => {
+          return (version === undefined)
+            ? meta.elements
+            : _.filter(meta.elements, (m) => semver.satisfies(version, m.version))
+        })
+    },
+
+    setConfig: (type, config, value) => {
+      return client.index({
+        index: configIndex,
+        type: type,
+        id: config,
+        body: {
+          value: value
+        }
+      })
+    },
+
+    getConfig: (type, config) => {
+      return client.get(
+        {
+          index: configIndex,
+          type: type,
+          id: config
+        }
+      )
+        .then(getSource)
+        .then(v => v.value)
     },
 
     flush: () => {

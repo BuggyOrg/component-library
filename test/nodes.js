@@ -7,7 +7,7 @@ var api = require('../src/api.js')
 chai.use(chaiAsPromised)
 var expect = chai.expect
 
-describe('Component library elastic interface', () => {
+describe('Elastic search node interface', () => {
   var test = {client: null}
   beforeEach(function () {
     this.timeout(10000)
