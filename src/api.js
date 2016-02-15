@@ -98,35 +98,35 @@ export function connect (host, prefix = '') {
       return client.update({
         index: metaIndex,
         type: node,
-        id: node + '@' + version,
+        id: node + '@' + semver.clean(version),
         body: {
           script: 'ctx._source.elements += element',
           params: {
             element: {
-              validity: version,
+              version: semver.clean(version),
               id: dataId,
-              meta: meta
+              data: meta
             }
           }
         }
       })
     },
 
-    getMeta: (node, dataId, version) => {
+    getMeta: (node, version, dataId) => {
       return client.get(
         {
           index: metaIndex,
           type: node,
-          id: node + '@' + version
+          id: node + '@' + semver.clean(version)
         }
       )
         .then(getSource)
         .then((meta) => {
-          return (version === undefined)
-            ? meta.elements
-            : _(meta.elements).chain()
-              .filter(m => m.dataId === m.dataId)
-              .find(m => semver.satisfies(version, m.version))
+          var elem = _(meta.elements).chain()
+            .filter(m => m.dataId === m.dataId)
+            .findLast(m => semver.satisfies(m.version, version))
+            .value()
+          return elem
         })
     },
 
@@ -135,7 +135,7 @@ export function connect (host, prefix = '') {
     },
 
     getCode: (node, version, language) => {
-      return api.getMeta(node, 'code/' + language, version)
+      return api.getMeta(node, version, 'code/' + language).then(meta => meta.data)
     },
 
     setConfig: (type, config, value) => {

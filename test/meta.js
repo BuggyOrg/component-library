@@ -21,10 +21,9 @@ describe('Elastic search meta information interface', () => {
       version: '0.0.1'
     })
       .then(() => test.client.setMeta('test/node', '0.0.1', 'code/golang', 'a <- b'))
-      .then(() => test.client.getMeta('test/node', 'code/golang'))
+      .then(() => test.client.getMeta('test/node', '0.0.1', 'code/golang'))
       .then(meta => {
-        expect(meta).to.have.length(1)
-        expect(meta[0].meta).to.equal('a <- b')
+        expect(meta.data).to.equal('a <- b')
       })
   })
 
@@ -35,10 +34,9 @@ describe('Elastic search meta information interface', () => {
     })
       .then(() => test.client.setMeta('test/node', '0.0.1', 'code/golang', 'a <- b'))
       .then(() => test.client.setMeta('test/node', '0.0.1', 'code/golang', 'c <- b'))
-      .then(() => test.client.getMeta('test/node', 'code/golang'))
+      .then(() => test.client.getMeta('test/node', '0.0.1', 'code/golang'))
       .then(meta => {
-        expect(meta).to.have.length(1)
-        expect(meta[0].meta).to.equal('c <- b')
+        expect(meta.data).to.equal('c <- b')
       })
   })
 
