@@ -183,13 +183,23 @@ export function connect (host, prefix = '') {
           type: normNode.id,
           id: normNode.id + '@' + normNode.version,
           body: normNode
-        }).then(() => {
+        })
+        .then(() => {
+          return api.predecessorMeta(normNode.id, normNode.version)
+        })
+        .then(predMeta => {
+          let elements = (typeof predMeta === 'object' && Array.isArray(predMeta._source.elements))
+            ? predMeta._source.elements
+            : []
+          elements = _.map(elements, e => {
+            return _.merge({}, e, {version: normNode.version})
+          })
           return client.create({
             index: metaIndex,
             type: normNode.id,
             id: normNode.id + '@' + normNode.version,
             body: {
-              elements: []
+              elements: elements
             }
           })
         })
@@ -205,6 +215,26 @@ export function connect (host, prefix = '') {
           let older = _.filter(list, i => semver.lt(i.version, version))
           return _.last(older.sort((a, b) => { return semver.compare(a.version, b.version) }))
         })
+    },
+
+    predecessorMeta: (nodeId, version) => {
+      return new Promise((resolve, reject) => {
+        api.predecessor(nodeId, version)
+          .then(pred => {
+            return client.get({
+              index: metaIndex,
+              type: pred.id,
+              id: pred.id + '@' + pred.version
+            })
+          })
+          .then((predMeta) => {
+            resolve(predMeta)
+          })
+          .catch(() => {
+            // if there is no predecessor resolve with nothing
+            resolve()
+          })
+      })
     },
 
     init: () => {

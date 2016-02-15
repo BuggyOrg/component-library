@@ -3,6 +3,7 @@
 var chai = require('chai')
 var chaiAsPromised = require('chai-as-promised')
 var api = require('../src/api.js')
+var allWaiting = require('./allWaiting')
 
 chai.use(chaiAsPromised)
 var expect = chai.expect
@@ -53,6 +54,49 @@ describe('Elastic search meta information interface', () => {
       .then(() => test.client.setCode('test/node', '0.0.1', 'golang', 'a <- c'))
       .then(() => test.client.getCode('test/node', '0.0.2', 'golang'))
       .then((code) => {
+        expect(code).to.be.a('string')
+        expect(code).to.equal('a <- b')
+      })
+  })
+
+  it('meta information is carried over from earlier versions', () => {
+    return test.client.insert({
+      id: 'test/node',
+      version: '0.0.1'
+    })
+      .then(() => test.client.setCode('test/node', '0.0.1', 'golang', 'a <- b'))
+      .then(test.client.flush)
+      .then(() => test.client.insert({
+        id: 'test/node',
+        version: '0.0.2'
+      }))
+      .then(() => test.client.getCode('test/node', '0.0.2', 'golang'))
+      .then(code => {
+        expect(code).to.be.a('string')
+        expect(code).to.equal('a <- b')
+      })
+  })
+
+  it('uses the predecessor for carrying metadata to newly created version', () => {
+    return allWaiting([
+      test.client.insert({
+        id: 'test/node',
+        version: '0.0.1'
+      }),
+      test.client.insert({
+        id: 'test/node',
+        version: '0.0.3'
+      })]
+    )
+      .then(() => test.client.setCode('test/node', '0.0.1', 'golang', 'a <- b'))
+      .then(() => test.client.setCode('test/node', '0.0.3', 'golang', 'c <- b'))
+      .then(test.client.flush)
+      .then(() => test.client.insert({
+        id: 'test/node',
+        version: '0.0.2'
+      }))
+      .then(() => test.client.getCode('test/node', '0.0.2', 'golang'))
+      .then(code => {
         expect(code).to.be.a('string')
         expect(code).to.equal('a <- b')
       })
