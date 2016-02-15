@@ -101,4 +101,19 @@ describe('Elastic search meta information interface', () => {
         expect(code).to.equal('a <- b')
       })
   })
+
+  it('carrying metadata is controlled by a flag', () => {
+    return expect(test.client.insert({
+      id: 'test/node',
+      version: '0.0.1'
+    })
+      .then(() => test.client.setCode('test/node', '0.0.1', 'golang', 'a <- b'))
+      .then(test.client.flush)
+      .then(() => test.client.insert({
+        id: 'test/node',
+        version: '0.0.2'
+      }, false))
+      .then(() => test.client.getCode('test/node', '0.0.2', 'golang')))
+      .to.be.rejected
+  })
 })

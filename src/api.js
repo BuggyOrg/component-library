@@ -174,7 +174,7 @@ export function connect (host, prefix = '') {
         })
     },
 
-    insert: node => {
+    insert: (node, copyMetadata = true) => {
       var isValid = valid(node)
       if (isValid.valid === true) {
         var normNode = normalizeNode(node)
@@ -194,6 +194,9 @@ export function connect (host, prefix = '') {
           elements = _.map(elements, e => {
             return _.merge({}, e, {version: normNode.version})
           })
+          if (!copyMetadata) {
+            elements = []
+          }
           return client.create({
             index: metaIndex,
             type: normNode.id,
