@@ -27,6 +27,30 @@ const edit = (file) => {
   })
 }
 
+const stdinOrEdit = (getFiletype, promiseAfter) => {
+  if (process.stdin.isTTY) {
+    console.log('no stdin input starting editor')
+    return new Promise((resolve) => {
+      if (typeof getFiletype !== 'function') {
+        return tempfile(getFiletype)
+      } else {
+        return getFiletype().then((filetype) => tempfile(filetype))
+      }
+    })
+    .then((tmpFile) => {
+      return edit(tmpFile).then(() => fs.unlinkSync(tmpFile))
+    })
+    .then((content) => {
+      return promiseAfter(content)
+    })
+  } else {
+    getStdin().then((content) => {
+      // we got something on stdin, don't open the editor
+      return promiseAfter(content)
+    })
+  }
+}
+
 if (process.env.BUGGY_COMPONENT_LIBRARY_HOST) {
   server = process.env.BUGGY_COMPONENT_LIBRARY_HOST
   defaultElastic += '=' + server
@@ -60,51 +84,44 @@ program
   .description('Add a node to the component library. It opens an editor (env EDITOR) window or you can pipe the node into it.')
   .action((options) => {
     var client = connect(options.elastic, options.prefix)
-    if (process.stdin.isTTY) {
-      console.log('no stdin input starting editor')
-      const tmpFile = tempfile('.json')
-      edit(tmpFile).then((content) => {
-        var node = JSON.parse(content)
-        return client.put(node).then(() => node)
-      }).then((node) => {
-        console.log(chalk.bgGreen('Successfully stored node with id: ' + node.id))
-      }).then(() => {
-        fs.unlinkSync(tmpFile)
-      }).catch((err) => {
-        console.error(chalk.red(err.message))
-        process.exit(-1)
-      })
-    } else {
-      getStdin().then((str) => {
-        // we got something on stdin, don't open the editor
-        var node = JSON.parse(str)
-        return client.put(node).then(() => node)
-      }).then((node) => {
-        console.log(chalk.bgGreen('Successfully stored node with id: ' + node.id))
-      }).catch((err) => {
-        console.error(chalk.red(err.message))
-        process.exit(-1)
-      })
-    }
+    stdinOrEdit('.json', (content) => {
+      var node = JSON.parse(content)
+      return client.insert(node).then(() => node)
+    })
+    .then((node) => {
+      console.log(chalk.bgGreen('Successfully stored node with id: ' + node.id))
+    })
+    .catch((err) => {
+      console.error(chalk.red(err.message))
+      process.exit(-1)
+    })
   })
 
 program
-  .command('set-code <languageFileEnding> <node>')
+  .command('set-code <node> <language> [validity]')
   .description('Add set code for a node in a specific programming language')
-  .action((languageEnding, node, options) => {
+  .action((node, language, validity, options) => {
     var client = connect(options.elastic, options.prefix)
-    if (process.stdin.isTTY) {
-      console.log('no stdin input starting editor')
-      const tmpFile = tempfile(languageEnding)
-      edit(tmpFile).then((content) => {
-        return client.setCode(content)
-      }).then(() => {
-        fs.unlinkSync(tmpFile)
-      }).catch((err) => {
-        console.error(chalk.red(err.message))
-        process.exit(-1)
-      })
-    }
+    stdinOrEdit(() => client.getConfig('language', language),
+      (content) => client.setCode(node, validity, language, content))
+    .then(() => {
+      console.log(chalk.bgGreen('Successfully stored code for node: ' + node))
+    }).catch((err) => {
+      console.error(chalk.red(err.message))
+      process.exit(-1)
+    })
+  })
+
+program
+  .command('get-code <node> <language> [version]')
+  .description('Get the implementation of a node in the specified language')
+  .action((node, language, version, options) => {
+    var client = connect(options.elastic, options.prefix)
+    client.getCode(node, language, version)
+    .then((code) => {
+      console.log('Implementation of "' + node + '" in "' + language + '"')
+      console.log(code)
+    })
   })
 
 program

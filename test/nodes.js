@@ -21,12 +21,12 @@ describe('Elastic search node interface', () => {
     })
   })
 
-  it('should put a new object into the database', () => {
-    return test.client.put({
+  it('should insert a new object into the database', () => {
+    return test.client.insert({
       id: 'test/node',
       version: '0.0.1'
     })
-      // flush the database to ensure the newly put value is in the search index
+      // flush the database to ensure the newly inserted value is in the search index
       .then(() => { return test.client.flush() })
       .then(() => { return test.client.query('test/node') })
       .then((items) => {
@@ -35,19 +35,19 @@ describe('Elastic search node interface', () => {
   })
 
   it('errors if the node does not contain an id', () => {
-    return expect(test.client.put({
+    return expect(test.client.insert({
       version: '0.0.1'
     })).to.be.rejected
   })
 
   it('errors if the node does not contain a version', () => {
-    return expect(test.client.put({
+    return expect(test.client.insert({
       id: 'test/node'
     })).to.be.rejected
   })
 
   it('errors if the node does not contain an invalid version', () => {
-    return expect(test.client.put({
+    return expect(test.client.insert({
       id: 'test/node',
       version: '0.0.0.1'
     })).to.be.rejected
@@ -55,18 +55,18 @@ describe('Elastic search node interface', () => {
 
   it('is not possible to store a node with the same version twice', () => {
     return expect(Promise.all([
-      test.client.put({id: 'test/node', version: '0.0.1'}),
-      test.client.put({id: 'test/node', version: '0.0.1'})
+      test.client.insert({id: 'test/node', version: '0.0.1'}),
+      test.client.insert({id: 'test/node', version: '0.0.1'})
     ])).to.be.rejected
   })
 
   it('can list all versions of a node', () => {
     return Promise.all([
-      test.client.put({id: 'test/node', version: '0.0.1'}),
-      test.client.put({id: 'test/node', version: '0.0.2'}),
-      test.client.put({id: 'test2/node', version: '0.0.1'})
+      test.client.insert({id: 'test/node', version: '0.0.1'}),
+      test.client.insert({id: 'test/node', version: '0.0.2'}),
+      test.client.insert({id: 'test2/node', version: '0.0.1'})
     ])
-      // flush the database to ensure the newly put value is in the search index
+      // flush the database to ensure the newly inserted value is in the search index
       .then(() => { return test.client.flush() })
       .then(() => { return test.client.versions('test/node') })
       .then((versions) => {

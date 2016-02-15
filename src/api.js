@@ -136,6 +136,14 @@ export function connect (host, prefix = '') {
         })
     },
 
+    setCode: (node, validity, language, meta) => {
+      return api.setMeta(node, validity, 'code/' + language, meta)
+    },
+
+    getCode: (node, language, version) => {
+      return api.getMeta(node, 'code/' + language, version)
+    },
+
     setConfig: (type, config, value) => {
       return client.index({
         index: configIndex,
@@ -172,7 +180,7 @@ export function connect (host, prefix = '') {
         })
     },
 
-    put: node => {
+    insert: node => {
       var isValid = valid(node)
       if (isValid.valid === true) {
         var normNode = normalizeNode(node)

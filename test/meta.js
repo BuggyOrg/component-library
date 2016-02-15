@@ -16,7 +16,7 @@ describe('Elastic search meta information interface', () => {
   })
 
   it('should add meta information for a node', () => {
-    return test.client.put({
+    return test.client.insert({
       id: 'test/node',
       version: '0.0.1'
     })
@@ -29,7 +29,7 @@ describe('Elastic search meta information interface', () => {
   })
 
   it('allows updates on existing meta information', () => {
-    return test.client.put({
+    return test.client.insert({
       id: 'test/node',
       version: '0.0.1'
     })
