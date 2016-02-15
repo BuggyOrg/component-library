@@ -12,7 +12,7 @@ describe('Elastic search meta information interface', () => {
   var test = {client: null}
   beforeEach(function () {
     this.timeout(10000)
-    test.client = api.connect('localhost:9200', 'tests_')
+    test.client = api.connect('localhost:9200', 'tests')
     return test.client.init().then(test.client.clear)
   })
 
