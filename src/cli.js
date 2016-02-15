@@ -117,7 +117,7 @@ program
   .description('Get the implementation of a node in the specified language')
   .action((node, language, version, options) => {
     var client = connect(options.elastic, options.prefix)
-    client.getCode(node, language, version)
+    client.getCode(node, version, language)
     .then((code) => {
       console.log('Implementation of "' + node + '" in "' + language + '"')
       console.log(code)

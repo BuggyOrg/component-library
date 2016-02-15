@@ -12,7 +12,7 @@ describe('Elastic search configuration interface', () => {
   beforeEach(function () {
     this.timeout(10000)
     test.client = api.connect('localhost:9200', 'tests_')
-    return test.client.init().then(() => { return test.client.clear() })
+    return test.client.init().then(test.client.clear)
   })
 
   it('should add configuration options', () => {

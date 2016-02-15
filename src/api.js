@@ -94,30 +94,22 @@ export function connect (host, prefix = '') {
         .then(_.partial(_.map, _, (s) => s.version))
     },
 
-    setMeta: (node, validity, dataId, meta) => {
-      return client.create({
+    setMeta: (node, version, dataId, meta) => {
+      return client.update({
         index: metaIndex,
         type: node,
-        id: node + '_' + dataId,
-        body: {
-          elements: []
-        }
-      })
-      .then(() => client.update({
-        index: metaIndex,
-        type: node,
-        id: node + '_' + dataId,
+        id: node + '@' + version,
         body: {
           script: 'ctx._source.elements += element',
           params: {
             element: {
-              validity: validity,
+              validity: version,
               id: dataId,
               meta: meta
             }
           }
         }
-      }))
+      })
     },
 
     getMeta: (node, dataId, version) => {
@@ -125,14 +117,16 @@ export function connect (host, prefix = '') {
         {
           index: metaIndex,
           type: node,
-          id: node + '_' + dataId
+          id: node + '@' + version
         }
       )
         .then(getSource)
         .then((meta) => {
           return (version === undefined)
             ? meta.elements
-            : _.filter(meta.elements, (m) => semver.satisfies(version, m.version))
+            : _(meta.elements).chain()
+              .filter(m => m.dataId === m.dataId)
+              .find(m => semver.satisfies(version, m.version))
         })
     },
 
@@ -140,7 +134,7 @@ export function connect (host, prefix = '') {
       return api.setMeta(node, validity, 'code/' + language, meta)
     },
 
-    getCode: (node, language, version) => {
+    getCode: (node, version, language) => {
       return api.getMeta(node, 'code/' + language, version)
     },
 
@@ -189,10 +183,28 @@ export function connect (host, prefix = '') {
           type: normNode.id,
           id: normNode.id + '@' + normNode.version,
           body: normNode
+        }).then(() => {
+          return client.create({
+            index: metaIndex,
+            type: normNode.id,
+            id: normNode.id + '@' + normNode.version,
+            body: {
+              elements: []
+            }
+          })
         })
       } else {
         return Promise.reject(isValid.error)
       }
+    },
+
+    // returns the node that precedes
+    predecessor: (nodeId, version) => {
+      return api.list(nodeId)
+        .then((list) => {
+          let older = _.filter(list, i => semver.lt(i.version, version))
+          return _.last(older.sort((a, b) => { return semver.compare(a.version, b.version) }))
+        })
     },
 
     init: () => {
