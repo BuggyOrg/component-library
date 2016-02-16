@@ -1,7 +1,7 @@
-var _ = require('lodash')
-var Q = require('q')
+import _ from 'lodash'
+import Q from 'q'
 
-module.exports = function (promiseArr) {
+export default function (promiseArr) {
   return new Promise((resolve, reject) => {
     Q.allSettled(promiseArr)
     .then((results) => {

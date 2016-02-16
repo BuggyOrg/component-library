@@ -23,7 +23,7 @@ const valid = (obj) => {
 
 const normalizeNode = function (node) {
   var normNode = _.clone(node)
-  normNode.verion = semver.clean(node.version)
+  normNode.version = semver.clean(node.version)
   return normNode
 }
 
@@ -38,7 +38,7 @@ const clearIndex = function (api, client, index) {
     .then(() => api.flush())
 }
 
-export function connect (host, prefix = '') {
+export default function connect (host, prefix = '') {
   var client = new elastic.Client({
     host: host
   })
@@ -86,9 +86,11 @@ export function connect (host, prefix = '') {
       return client.get(
         {
           index: nodesIndex,
+          type: id,
           id: id + '@' + semver.clean(version)
         }
       )
+      .then(getSource)
     },
 
     versions: id => {
@@ -141,13 +143,17 @@ export function connect (host, prefix = '') {
     },
 
     setConfig: (type, config, value) => {
-      return client.index({
-        index: configIndex,
-        type: type,
-        id: config,
-        body: {
-          value: value
-        }
+      return new Promise(resolve => {
+        return client.index({
+          index: configIndex,
+          type: type,
+          id: config,
+          body: {
+            value: value
+          }
+        })
+        .then(config => resolve(config))
+        .catch(() => resolve())
       })
     },
 
@@ -177,7 +183,7 @@ export function connect (host, prefix = '') {
     },
 
     getLatestVersion: node => {
-      api.list(node)
+      return api.list(node)
       .then(list => {
         return _.last(list.sort((a, b) => { return semver.compare(a.version, b.version) })).version
       })

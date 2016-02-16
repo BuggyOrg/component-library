@@ -1,8 +1,8 @@
 /* global describe, it, beforeEach */
 
-var chai = require('chai')
-var chaiAsPromised = require('chai-as-promised')
-var api = require('../src/api.js')
+import chai from 'chai'
+import chaiAsPromised from 'chai-as-promised'
+import connect from '../src/api'
 
 chai.use(chaiAsPromised)
 var expect = chai.expect
@@ -11,7 +11,7 @@ describe('Elastic search configuration interface', () => {
   var test = {client: null}
   beforeEach(function () {
     this.timeout(10000)
-    test.client = api.connect('localhost:9200', 'tests')
+    test.client = connect('localhost:9200', 'tests')
     return test.client.init().then(test.client.clear)
   })
 
