@@ -47,6 +47,13 @@ describe('Elastic search node interface', () => {
     })).to.be.rejected
   })
 
+  it('errors if the node id contains a @ character', () => {
+    return expect(test.client.insert({
+      id: 'test@node',
+      version: '0.0.1'
+    })).to.be.rejected
+  })
+
   it('errors if the node does not contain an invalid version', () => {
     return expect(test.client.insert({
       id: 'test/node',

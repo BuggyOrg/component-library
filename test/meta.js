@@ -51,6 +51,7 @@ describe('Elastic search meta information interface', () => {
         version: '0.0.2'
       }))
       .then(() => test.client.setCode('test/node', '0.0.2', 'golang', 'a <- b'))
+      .then(() => test.client.setCode('test/node', '0.0.2', 'nothing', ''))
       .then(() => test.client.setCode('test/node', '0.0.1', 'golang', 'a <- c'))
       .then(() => test.client.getCode('test/node', '0.0.2', 'golang'))
       .then((code) => {

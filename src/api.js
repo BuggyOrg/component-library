@@ -10,6 +10,8 @@ const mapHits = _.partial(_.map, _, getSource)
 const valid = (obj) => {
   if (!obj.id) {
     return {error: 'Node must have a meta-id', valid: false}
+  } else if (obj.id.indexOf('@') !== -1) {
+    return {error: 'Node id (' + obj.id + ') cannot have the special character @', valid: false}
   } else if (!obj.version) {
     return {error: 'Node must have an id', valid: false}
   } else if (!semver.valid(obj.version)) {
@@ -94,7 +96,7 @@ export function connect (host, prefix = '') {
         .then(_.partial(_.map, _, (s) => s.version))
     },
 
-    setMeta: (node, version, dataId, meta) => {
+    setMeta: (node, version, key, meta) => {
       return client.update({
         index: metaIndex,
         type: node,
@@ -104,7 +106,7 @@ export function connect (host, prefix = '') {
           params: {
             element: {
               version: semver.clean(version),
-              id: dataId,
+              key: key,
               data: meta
             }
           }
@@ -112,7 +114,7 @@ export function connect (host, prefix = '') {
       })
     },
 
-    getMeta: (node, version, dataId) => {
+    getMeta: (node, version, key) => {
       return client.get(
         {
           index: metaIndex,
@@ -123,7 +125,7 @@ export function connect (host, prefix = '') {
         .then(getSource)
         .then((meta) => {
           var elem = _(meta.elements).chain()
-            .filter(m => m.dataId === m.dataId)
+            .filter(m => m.key === key)
             .findLast(m => semver.satisfies(m.version, version))
             .value()
           return elem
@@ -172,6 +174,13 @@ export function connect (host, prefix = '') {
         ]).then((count) => {
           return {nodeCount: count}
         })
+    },
+
+    getLatestVersion: node => {
+      api.list(node)
+      .then(list => {
+        return _.last(list.sort((a, b) => { return semver.compare(a.version, b.version) })).version
+      })
     },
 
     insert: (node, copyMetadata = true) => {
