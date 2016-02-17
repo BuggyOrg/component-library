@@ -1,19 +1,25 @@
 {
   "name": "@buggyorg/component-library",
   "version": "0.1.8",
-  "description": "file system for atomics and other components",
+  "description": "Backend driver for buggy components.",
   "main": "lib/api.js",
   "bin": {
     "buggy-library": "./lib/cli.js"
   },
   "scripts": {
-    "test": "node node_modules/standard/bin/cmd.js src/**/*.js && gulp && node_modules/.bin/babel-node scripts/setup_elastic.js && node_modules/mocha/bin/mocha --compilers js:babel-register --require babel-polyfill --timeout 10000"
+    "test": "node node_modules/standard/bin/cmd.js src/**/*.js && gulp && node_modules/.bin/babel-node scripts/setup_elastic.js && node_modules/mocha/bin/mocha --compilers js:babel-register --require babel-polyfill --timeout 20000"
   },
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/BuggyOrg/component-library.git"
   },
-  "author": "Georg Schuppe",
+  "contributors": [
+    "Georg Schupper",
+    {
+      "name": "Maximilian Klein",
+      "email": "dasmaxl@gmail.com"
+    }
+  ],
   "license": "MIT",
   "dependencies": {
     "chalk": "^1.1.1",
