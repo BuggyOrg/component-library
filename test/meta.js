@@ -23,8 +23,8 @@ describe('Elastic search meta information interface', () => {
     })
       .then(() => test.client.setMeta('test/node', '0.0.1', 'code/golang', 'a <- b'))
       .then(() => test.client.getMeta('test/node', '0.0.1', 'code/golang'))
-      .then(meta => {
-        expect(meta.data).to.equal('a <- b')
+      .then(data => {
+        expect(data).to.equal('a <- b')
       })
   })
 
@@ -36,8 +36,8 @@ describe('Elastic search meta information interface', () => {
       .then(() => test.client.setMeta('test/node', '0.0.1', 'code/golang', 'a <- b'))
       .then(() => test.client.setMeta('test/node', '0.0.1', 'code/golang', 'c <- b'))
       .then(() => test.client.getMeta('test/node', '0.0.1', 'code/golang'))
-      .then(meta => {
-        expect(meta.data).to.equal('c <- b')
+      .then(data => {
+        expect(data).to.equal('c <- b')
       })
   })
 
@@ -116,5 +116,19 @@ describe('Elastic search meta information interface', () => {
       }, false))
       .then(() => test.client.getCode('test/node', '0.0.2', 'golang')))
       .to.be.rejected
+  })
+
+  it('`getAllMeta(...)` returns all meta data entries for a node', () => {
+    return test.client.insert({
+      id: 'test/node',
+      version: '0.0.1'
+    })
+      .then(test.client.flush)
+      .then(() => test.client.setMeta('test/node', '0.0.1', 'code/golang', 'a <- b'))
+      .then(() => test.client.setMeta('test/node', '0.0.1', 'nothing', ''))
+      .then(() => test.client.getAllMeta('test/node', '0.0.1'))
+      .then((metaList) => {
+        expect(metaList).to.have.length(2)
+      })
   })
 })

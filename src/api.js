@@ -130,6 +130,24 @@ export default function connect (host, prefix = '') {
             .filter(m => m.key === key)
             .findLast(m => semver.satisfies(m.version, version))
             .value()
+          return elem.data
+        })
+    },
+
+    getAllMeta: (node, version) => {
+      return client.get(
+        {
+          index: metaIndex,
+          type: node,
+          id: node + '@' + semver.clean(version)
+        }
+      )
+        .then(getSource)
+        .then((meta) => {
+          var elem = _(meta.elements).chain()
+            .filter(m => semver.satisfies(m.version, version))
+            .map(m => m.data)
+            .value()
           return elem
         })
     },
@@ -139,7 +157,7 @@ export default function connect (host, prefix = '') {
     },
 
     getCode: (node, version, language) => {
-      return api.getMeta(node, version, 'code/' + language).then(meta => meta.data)
+      return api.getMeta(node, version, 'code/' + language)
     },
 
     setConfig: (type, config, value) => {
