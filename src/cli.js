@@ -104,7 +104,7 @@ program
 
 program
   .command('query <name>')
-  .description('query detailed information for a specific component')
+  .description('Query detailed information for a specific component. This command can be used to search nodes.')
   .action((name) => {
     var client = connect(program.elastic, program.prefix)
     client.query(name).then((node) => {
@@ -117,8 +117,8 @@ program
   })
 
 program
-  .command('get <node> [version]')
-  .description('Get a node document. If the version is not specified it prints automatically the latest version')
+  .command('get <node-id> [version]')
+  .description('Get a node document by the id of the node. If the version is not specified it prints automatically the latest version')
   .action((nodeID, version) => {
     var client = connect(program.elastic, program.prefix)
     versionOrLatest(nodeID, version, client)
@@ -153,8 +153,8 @@ program
   })
 
 program
-  .command('set-code <node> <language> [version]')
-  .description('Add set code for a node in a specific programming language')
+  .command('set-code <node-id> <language> [version]')
+  .description('Add set code for a node in a specific programming language. It opens an editor (env EDITOR) window or you can pipe the code into it.')
   .action((node, language, version) => {
     var client = connect(program.elastic, program.prefix)
     stdinOrEdit(() => client.getConfig('language', language),
@@ -171,7 +171,7 @@ program
   })
 
 program
-  .command('get-code <node> <language> [version]')
+  .command('get-code <node-id> <language> [version]')
   .description('Get the implementation of a node in the specified language')
   .action((node, language, version) => {
     var client = connect(program.elastic, program.prefix)
@@ -188,11 +188,11 @@ program
   })
 
 program
-  .command('set-meta <node> <key> [version]')
-  .description('Set the meta information for a node for a specific key')
+  .command('set-meta <node-id> <key> [version]')
+  .description('Set the meta information (as json) for a node for a specific key. It opens an editor (env EDITOR) window or you can pipe the json document into it. If the version is not specified it sets the meta information on the latest version.')
   .action((node, key, version) => {
     var client = connect(program.elastic, program.prefix)
-    stdinOrEdit('',
+    stdinOrEdit('.json',
       (content) => {
         var data
         try {
@@ -211,16 +211,22 @@ program
   })
 
 program
-  .command('get-meta <node> [key] [version]')
-  .option('-k, --key <key>', 'The meta key to query.')
-  .option('-v, --version <nodeVersion>', 'The version of the node.')
-  .description('Get the meta information for a node')
+  .command('get-meta <node-id> [key] [version]')
+  .option('-k, --key <key>', 'The meta key to query. If you don\'t provide a key it will print all meta information for the node')
+  .option('-v, --version <nodeVersion>', 'The version of the node. If the version is not specified it sets the meta information on the latest version.')
+  .description('Get the meta information for a node by id.')
   .action((node, key, version, options) => {
     var client = connect(program.elastic, program.prefix)
     key = key || options.key
     version = version || options.nodeVersion
     versionOrLatest(node, version, client)
-    .then(nodeVersion => client.getMeta(node, nodeVersion, key))
+    .then(nodeVersion => {
+      if (key) {
+        return client.getMeta(node, nodeVersion, key)
+      } else {
+        return client.getAllMeta(node, nodeVersion)
+      }
+    })
     .then(data => console.log(JSON.stringify(data)))
     .catch(err => {
       console.error(chalk.red(err.message))

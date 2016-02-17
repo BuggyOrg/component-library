@@ -134,6 +134,24 @@ export default function connect (host, prefix = '') {
         })
     },
 
+    getAllMeta: (node, version) => {
+      return client.get(
+        {
+          index: metaIndex,
+          type: node,
+          id: node + '@' + semver.clean(version)
+        }
+      )
+        .then(getSource)
+        .then((meta) => {
+          var elem = _(meta.elements).chain()
+            .filter(m => semver.satisfies(m.version, version))
+            .map(m => m.data)
+            .value()
+          return elem
+        })
+    },
+
     setCode: (node, validity, language, meta) => {
       return api.setMeta(node, validity, 'code/' + language, meta)
     },

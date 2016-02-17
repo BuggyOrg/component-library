@@ -164,4 +164,19 @@ describe('Component library CLI', () => {
       expect(JSON.parse(data)).to.deep.equal({'a': 1, 'b': 2})
     })
   })
+
+  it('`get-meta` gets a list of all meta data entries if no key is specified', () => {
+    return test.client.insert({
+      id: 'test/node',
+      version: '0.0.1'
+    })
+    .then(test.client.flush)
+    .then(() => test.client.setMeta('test/node', '0.0.1', 'code/golang', 'a <- b'))
+    .then(() => test.client.setMeta('test/node', '0.0.1', 'nothing', ''))
+    .then(test.client.flush)
+    .then(() => runCLI('get-meta test/node'))
+    .then(data => {
+      expect(JSON.parse(data)).to.have.length(2)
+    })
+  })
 })

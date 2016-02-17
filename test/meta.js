@@ -117,4 +117,18 @@ describe('Elastic search meta information interface', () => {
       .then(() => test.client.getCode('test/node', '0.0.2', 'golang')))
       .to.be.rejected
   })
+
+  it('`getAllMeta(...)` returns all meta data entries for a node', () => {
+    return test.client.insert({
+      id: 'test/node',
+      version: '0.0.1'
+    })
+      .then(test.client.flush)
+      .then(() => test.client.setMeta('test/node', '0.0.1', 'code/golang', 'a <- b'))
+      .then(() => test.client.setMeta('test/node', '0.0.1', 'nothing', ''))
+      .then(() => test.client.getAllMeta('test/node', '0.0.1'))
+      .then((metaList) => {
+        expect(metaList).to.have.length(2)
+      })
+  })
 })
