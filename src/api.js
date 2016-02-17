@@ -130,7 +130,7 @@ export default function connect (host, prefix = '') {
             .filter(m => m.key === key)
             .findLast(m => semver.satisfies(m.version, version))
             .value()
-          return elem
+          return elem.data
         })
     },
 
@@ -139,7 +139,7 @@ export default function connect (host, prefix = '') {
     },
 
     getCode: (node, version, language) => {
-      return api.getMeta(node, version, 'code/' + language).then(meta => meta.data)
+      return api.getMeta(node, version, 'code/' + language)
     },
 
     setConfig: (type, config, value) => {

@@ -193,9 +193,16 @@ program
   .action((node, key, version) => {
     var client = connect(program.elastic, program.prefix)
     stdinOrEdit('',
-      (content) =>
-        versionOrLatest(node, version, client)
-        .then(nodeVersion => client.setMeta(node, nodeVersion, key, content)))
+      (content) => {
+        var data
+        try {
+          data = JSON.parse(content)
+        } catch (err) {
+          throw new Error('Unable parse JSON data. Please provide a JSON document.')
+        }
+        return versionOrLatest(node, version, client)
+        .then(nodeVersion => client.setMeta(node, nodeVersion, key, data))
+      })
     .then(() => console.log('Successfully change meta key "' + key + '" of "' + node + '"'))
     .catch(err => {
       console.error(chalk.red(err.message))
@@ -206,14 +213,19 @@ program
 program
   .command('get-meta <node> [key] [version]')
   .option('-k, --key <key>', 'The meta key to query.')
-  .option('-v, --version <version>', 'The version of the node.')
+  .option('-v, --version <nodeVersion>', 'The version of the node.')
   .description('Get the meta information for a node')
   .action((node, key, version, options) => {
     var client = connect(program.elastic, program.prefix)
     key = key || options.key
-    version = version || options.version
-    client.getMeta(node, version, key)
-    .then(meta => console.log(meta.data))
+    version = version || options.nodeVersion
+    versionOrLatest(node, version, client)
+    .then(nodeVersion => client.getMeta(node, nodeVersion, key))
+    .then(data => console.log(JSON.stringify(data)))
+    .catch(err => {
+      console.error(chalk.red(err.message))
+      process.exit(-1)
+    })
   })
 
 program
