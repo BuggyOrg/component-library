@@ -10,7 +10,7 @@ import tempfile from 'tempfile'
 import {spawn} from 'child_process'
 import semver from 'semver'
 import path from 'path'
-import {elasticdump} from 'elasticdump'
+import {elasticdump as Elasticdump} from 'elasticdump'
 import _ from 'lodash'
 
 var server = ''
@@ -255,7 +255,7 @@ program
     })
     if (path.extname(outfile) === '.json') {
       // create json export
-      var dumper = new elasticdump(options.input, options.output, exportOptions)
+      var dumper = new Elasticdump(options.input, options.output, exportOptions)
       dumper.on('log', message => { console.log('log', message) })
       dumper.on('debug', message => { console.log('debug', message) })
       dumper.on('error', error => { console.error('log', 'Error Emitted => ' + (error.message || JSON.stringify(error))) })
@@ -284,7 +284,7 @@ program
     })
     if (path.extname(infile) === '.json') {
       // create json export
-      var dumper = new elasticdump(options.input, options.output, exportOptions)
+      var dumper = new Elasticdump(options.input, options.output, exportOptions)
       dumper.on('log', message => { console.log('log', message) })
       dumper.on('debug', message => { console.log('debug', message) })
       dumper.on('error', error => { console.error('log', 'Error Emitted => ' + (error.message || JSON.stringify(error))) })
