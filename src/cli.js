@@ -9,6 +9,9 @@ import chalk from 'chalk'
 import tempfile from 'tempfile'
 import {spawn} from 'child_process'
 import semver from 'semver'
+import path from 'path'
+import {elasticdump} from 'elasticdump'
+import _ from 'lodash'
 
 var server = ''
 var defaultElastic = ' Defaults to BUGGY_COMPONENT_LIBRARY_HOST'
@@ -234,5 +237,69 @@ program
     })
   })
 
+var dumpOptions = {
+  all: false, limit: 100, offset: 0, debug: false, type: 'data', delete: false, bulk: false, maxSockets: null,
+  'input-index': null, 'output-index': null, inputTransport: null, outputTransport: null, searchBody: null,
+  sourceOnly: false, jsonLines: false, format: '', 'ignore-errors': false, scrollTime: '10m',
+  'bulk-use-output-index-name': false, 'bulk-mode': 'index', timeout: null, skip: null, toLog: null
+}
+
 program
-  .parse(process.argv)
+  .command('export <outfile>')
+  .description('Export the whole component library into one file. You can either specify a plain .json document or a .gz archive.')
+  .action((outfile, options) => {
+    var exportOptions = _.merge({}, dumpOptions, {
+      all: true,
+      input: program.elastic,
+      output: outfile
+    })
+    if (path.extname(outfile) === '.json') {
+      // create json export
+      var dumper = new elasticdump(options.input, options.output, exportOptions)
+      dumper.on('log', message => { console.log('log', message) })
+      dumper.on('debug', message => { console.log('debug', message) })
+      dumper.on('error', error => { console.error('log', 'Error Emitted => ' + (error.message || JSON.stringify(error))) })
+
+      dumper.dump((error, total_writes) => {
+        console.log('done dumpnig', error)
+        if (error) {
+          process.exit(1)
+        } else {
+          process.exit(0)
+        }
+      })
+    } else if (path.extname(outfile) === '.gz') {
+      // TODO: pipe through zlib
+    }
+  })
+
+program
+  .command('import <infile>')
+  .description('Import a backup into the elasticsearch database')
+  .action((infile, options) => {
+    var exportOptions = _.merge({}, dumpOptions, {
+      bulk: true,
+      input: infile,
+      output: program.elastic
+    })
+    if (path.extname(infile) === '.json') {
+      // create json export
+      var dumper = new elasticdump(options.input, options.output, exportOptions)
+      dumper.on('log', message => { console.log('log', message) })
+      dumper.on('debug', message => { console.log('debug', message) })
+      dumper.on('error', error => { console.error('log', 'Error Emitted => ' + (error.message || JSON.stringify(error))) })
+
+      dumper.dump((error, total_writes) => {
+        console.log('done dumpnig', error)
+        if (error) {
+          process.exit(1)
+        } else {
+          process.exit(0)
+        }
+      })
+    } else if (path.extname(infile) === '.gz') {
+      // TODO: pipe through zlib
+    }
+  })
+
+program.parse(process.argv)
