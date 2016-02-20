@@ -5,6 +5,7 @@ import processExists from 'process-exists'
 import rimraf from 'rimraf'
 import kill from './kill'
 import fs from 'fs'
+import isCi from 'is-ci'
 
 export function killElastic (callback) {
   var contents = fs.readFileSync(__dirname + '/.download/running.pid', 'utf8')
@@ -25,7 +26,7 @@ export function killElastic (callback) {
   })
 }
 
-if (require.main === module) {
+if (!isCi && require.main === module) {
   killElastic(() => {
     console.log('stopped elastic instance successfully')
   })
