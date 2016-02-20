@@ -179,4 +179,22 @@ describe('Component library CLI', () => {
       expect(JSON.parse(data)).to.have.length(2)
     })
   })
+
+  it('sets a global configuration', () => {
+    runCLI('set-config test cfg value')
+    .then(test.client.flush)
+    .then(() => test.client.get('test', 'cfg'))
+    .then(data => {
+      expect(data).to.deep.equal('val')
+    })
+  })
+
+  it('sets a global configuration', () => {
+    test.client.setConfig('test', 'cfg', 'val')
+    .then(test.client.flush)
+    .then(() => runCLI('get-config test cfg'))
+    .then(data => {
+      expect(data).to.deep.equal('val')
+    })
+  })
 })

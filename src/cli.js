@@ -237,6 +237,32 @@ program
     })
   })
 
+program
+  .command('set-config <type> <config> <value>')
+  .description('Set the configuration `config` in the category `type` to `value`.')
+  .action((type, config, value) => {
+    var client = connect(program.elastic, program.prefix)
+    client.setConfig(type, config, value)
+    .then(() => console.log('Successfully change config "' + config + '" of type "' + type + '"'))
+    .catch(err => {
+      console.error(chalk.red(err.message))
+      process.exit(-1)
+    })
+  })
+
+program
+  .command('get-config <type> <config>')
+  .description('Get the configuration `config` in the category `type`.')
+  .action((type, config) => {
+    var client = connect(program.elastic, program.prefix)
+    client.getConfig(type, config)
+    .then(data => console.log(data))
+    .catch(err => {
+      console.error(chalk.red(err.message))
+      process.exit(-1)
+    })
+  })
+
 var dumpOptions = {
   all: false, limit: 100, offset: 0, debug: false, type: 'data', delete: false, bulk: false, maxSockets: null,
   'input-index': null, 'output-index': null, inputTransport: null, outputTransport: null, searchBody: null,
