@@ -11,8 +11,11 @@ import kill from './kill'
 import chalk from 'chalk'
 import * as yaml from 'yamljs'
 import _ from 'lodash'
+import config from '../test/testCfg'
 
 var isCi = false
+var httpPort = config.httpPort
+var transportPort = config.transportPort
 
 var establishConnection = function () {
   return new Promise((resolve, reject) => {
@@ -21,7 +24,7 @@ var establishConnection = function () {
     // Case 3: no running elastic server defined
     if (isCi) {
       console.log('running on a CI server')
-      resolve({client: new elastic.Client({host: 'localhost:9200'})})
+      resolve({client: new elastic.Client({host: 'localhost:' + httpPort})})
     } else if (process.env.BUGGY_COMPONENT_LIBRARY_HOST) {
       console.log('using locally registered component library server', process.ENV.BUGGY_COMPONENT_LIBRARY_HOST)
       resolve({client: new elastic.Client({host: process.ENV.BUGGY_COMPONENT_LIBRARY_HOST})})
@@ -32,12 +35,14 @@ var establishConnection = function () {
           _.set(conf, 'script.groovy.sandbox.enabled', true)
           _.set(conf, 'script.inline', 'sandbox')
           _.set(conf, 'script.engine.groovy.inline.update', 'on')
+          _.set(conf, 'transport.tcp.port', transportPort)
+          _.set(conf, 'http.port', httpPort)
           fs.writeFileSync(__dirname + '/.download/elastic/config/elasticsearch.yml', yaml.stringify(conf, 2))
           var elasticInstance = child_process.spawn(__dirname + '/.download/elastic/bin/elasticsearch', {detached: true})
           fs.writeFileSync(__dirname + '/.download/running.pid', elasticInstance.pid)
           elasticInstance.stdout.on('data', (data) => {
             if (data.indexOf('started') !== -1) {
-              resolve({client: new elastic.Client({host: 'localhost:9200'}), instance: elasticInstance})
+              resolve({client: new elastic.Client({host: 'localhost:' + httpPort}), instance: elasticInstance})
             }
           })
         }

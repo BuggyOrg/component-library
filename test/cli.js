@@ -5,6 +5,7 @@ import chaiAsPromised from 'chai-as-promised'
 import connect from '../src/api'
 import {exec} from 'child_process'
 import allWaiting from './allWaiting'
+import config from './testCfg'
 
 chai.use(chaiAsPromised)
 var expect = chai.expect
@@ -14,15 +15,14 @@ process.env.BUGGY_COMPONENT_LIBRARY_HOST = 'http://localhost:9200'
 describe('Component library CLI', () => {
   var test = {client: null}
   beforeEach(function () {
-    this.timeout(10000)
     test.prefix = 'cli' + Math.ceil(Math.random() * 999)
-    test.client = connect('localhost:9200', test.prefix)
+    test.client = connect('localhost:' + config.httpPort, test.prefix)
     return test.client.init().then(test.client.clear)
   })
 
   const runCLI = (args, data) => {
     return new Promise((resolve, reject) => {
-      var cli = exec('node lib/cli -s -p ' + test.prefix + ' ' + args,
+      var cli = exec('node lib/cli -s -e localhost:' + config.httpPort + ' -p ' + test.prefix + ' ' + args,
         (error, stdout, stderr) => {
           if (error) {
             reject(stderr)
