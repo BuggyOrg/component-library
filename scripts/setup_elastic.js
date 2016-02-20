@@ -12,6 +12,7 @@ import chalk from 'chalk'
 import * as yaml from 'yamljs'
 import _ from 'lodash'
 import config from '../test/testCfg'
+import {killElastic} from './stop_elastic'
 
 var isCi = false
 var httpPort = config.httpPort
@@ -47,22 +48,9 @@ var establishConnection = function () {
           })
         }
         if (fs.existsSync(__dirname + '/.download/running.pid')) {
-          var contents = fs.readFileSync(__dirname + '/.download/running.pid', 'utf8')
-          processExists(Number(contents)).then(exists => {
-            if (exists) {
-              console.log('elastic search already running with PID, ' + chalk.red('killing it: '), contents)
-              kill(Number(contents), 'SIGTERM').then(() => {
-                console.log(chalk.yellow('removing old data at ' + __dirname + '/.download/elastic/data/elasticsearch'))
-                fs.unlinkSync(__dirname + '/.download/running.pid')
-                rimraf(__dirname + '/.download/elastic/data/elasticsearch', () => {
-                  console.log('starting new server')
-                  startServer()
-                })
-              })
-            } else {
-              console.log('elastic search not yet running [old PID: ', contents, ']')
-              startServer()
-            }
+          killElastic(() => {
+            console.log('starting new server')
+            startServer()
           })
         } else {
           startServer()
