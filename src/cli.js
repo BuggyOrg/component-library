@@ -24,7 +24,8 @@ const log = function (...args) {
 
 const edit = (file) => {
   return new Promise((resolve, reject) => {
-    var editor = spawn('vim', [file], {stdio: 'inherit'})
+    var editorCmd = process.env.EDITOR || 'nano'
+    var editor = spawn(editorCmd, [file], {stdio: 'inherit'})
     editor.on('exit', () => {
       fs.readFile(file, 'utf8', (err, contents) => {
         if (err) {
