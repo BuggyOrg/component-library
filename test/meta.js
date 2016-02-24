@@ -128,7 +128,7 @@ describe('Elastic search meta information interface', () => {
       .then(() => test.client.setMeta('test/node', '0.0.1', 'nothing', ''))
       .then(() => test.client.getAllMeta('test/node', '0.0.1'))
       .then((metaList) => {
-        expect(metaList).to.have.length(2)
+        expect(Object.keys(metaList)).to.have.length(2)
       })
   })
 })

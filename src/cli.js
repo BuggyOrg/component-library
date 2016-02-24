@@ -103,8 +103,17 @@ program
   .version(JSON.parse(fs.readFileSync(__dirname + '/../package.json'))['version'])
   .option('-e, --elastic <host>', 'The elastic server to connect to.' + defaultElastic, String, server)
   .option('-p, --prefix <prefix>', 'Prefixes the database indices.', String, '')
+  .option('-n, --nice', 'Pretty print all JSON output')
   .option('-s, --silent', 'Only print data no further information.')
   .parse(process.argv)
+
+function printJSON (json) {
+  if (program.nice) {
+    console.log(JSON.stringify(json, null, 2))
+  } else {
+    console.log(JSON.stringify(json))
+  }
+}
 
 program
   .command('query <name>')
@@ -112,7 +121,7 @@ program
   .action((name) => {
     var client = connect(program.elastic, program.prefix)
     client.query(name).then((node) => {
-      log(JSON.stringify(node, null, 2))
+      printJSON(node)
     })
     .catch(err => {
       console.error(chalk.red(err.message))
@@ -130,7 +139,7 @@ program
       return client.get(nodeID, version)
     })
     .then(node => {
-      console.log(JSON.stringify(node, null, 2))
+      printJSON(node)
     })
     .catch(err => {
       console.err(chalk.red(err))
@@ -231,7 +240,7 @@ program
         return client.getAllMeta(node, nodeVersion)
       }
     })
-    .then(data => console.log(JSON.stringify(data)))
+    .then(data => printJSON(data))
     .catch(err => {
       console.error(chalk.red(err.message))
       process.exit(-1)

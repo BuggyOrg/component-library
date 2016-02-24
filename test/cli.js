@@ -151,6 +151,20 @@ describe('Component library CLI', () => {
     })
   })
 
+  it('sets meta data with an array for a specific node', () => {
+    return test.client.insert({
+      id: 'test/node',
+      version: '0.0.1'
+    })
+    .then(test.client.flush)
+    .then(() => runCLI('set-meta test/node dummy', '{"a":[1,2],"b":["2"]}'))
+    .then(test.client.flush)
+    .then(() => test.client.getMeta('test/node', '0.0.1', 'dummy'))
+    .then(data => {
+      expect(data).to.deep.equal({"a":[1,2],"b":["2"]})
+    })
+  })
+
   it('gets metadata for a specific node', () => {
     return test.client.insert({
       id: 'test/node',
@@ -176,7 +190,7 @@ describe('Component library CLI', () => {
     .then(test.client.flush)
     .then(() => runCLI('get-meta test/node'))
     .then(data => {
-      expect(JSON.parse(data)).to.have.length(2)
+      expect(Object.keys(JSON.parse(data))).to.have.length(2)
     })
   })
 

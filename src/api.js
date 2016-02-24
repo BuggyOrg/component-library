@@ -146,7 +146,8 @@ export default function connect (host, prefix = '') {
         .then((meta) => {
           var elem = _(meta.elements).chain()
             .filter(m => semver.satisfies(m.version, version))
-            .map(m => m.data)
+            .map(m => ({key: m.key, data: m.data}))
+            .keyBy('key')
             .value()
           return elem
         })
