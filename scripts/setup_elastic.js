@@ -32,6 +32,10 @@ var establishConnection = function () {
             resolve({client: new elastic.Client({host: 'localhost:' + httpPort}), instance: elasticInstance})
           }
         })
+        elasticInstance.stderr.on('data', data => {
+          console.error(data.toString())
+          process.exit(1)
+        })
       }
       if (fs.existsSync(__dirname + '/.download/running.pid')) {
         killElastic(() => {
