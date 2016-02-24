@@ -1,6 +1,6 @@
 {
   "name": "@buggyorg/component-library",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "description": "Backend driver for buggy components.",
   "main": "lib/api.js",
   "bin": {
