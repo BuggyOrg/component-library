@@ -109,7 +109,7 @@ export default function connect (host, prefix = '') {
             element: {
               version: semver.clean(version),
               key: key,
-              data: meta
+              data: JSON.stringify(meta)
             }
           }
         }
@@ -130,7 +130,7 @@ export default function connect (host, prefix = '') {
             .filter(m => m.key === key)
             .findLast(m => semver.satisfies(m.version, version))
             .value()
-          return elem.data
+          return JSON.parse(elem.data)
         })
     },
 
