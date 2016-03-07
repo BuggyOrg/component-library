@@ -104,7 +104,7 @@ describe('Elastic search meta information interface', () => {
   })
 
   it('carrying metadata is controlled by a flag', () => {
-    return expect(test.client.insert({
+    return test.client.insert({
       id: 'test/node',
       version: '0.0.1'
     })
@@ -114,8 +114,10 @@ describe('Elastic search meta information interface', () => {
         id: 'test/node',
         version: '0.0.2'
       }, false))
-      .then(() => test.client.getCode('test/node', '0.0.2', 'golang')))
-      .to.be.rejected
+      .then(() => test.client.getCode('test/node', '0.0.2', 'golang'))
+      .then((code) => {
+        expect(code).to.be.an('undefined')
+      })
   })
 
   it('`getAllMeta(...)` returns all meta data entries for a node', () => {
@@ -129,6 +131,18 @@ describe('Elastic search meta information interface', () => {
       .then(() => test.client.getAllMeta('test/node', '0.0.1'))
       .then((metaList) => {
         expect(Object.keys(metaList)).to.have.length(2)
+      })
+  })
+
+  it('`getMeta` returns undefined if the metadata is not set', () => {
+    return test.client.insert({
+      id: 'test/node',
+      version: '0.0.1'
+    })
+      .then(test.client.flush)
+      .then(() => test.client.getMeta('test/node', '0.0.1', 'nothing'))
+      .then((metaObj) => {
+        expect(metaObj).to.be.an('undefined');
       })
   })
 })

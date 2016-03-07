@@ -130,7 +130,7 @@ export default function connect (host, prefix = '') {
             .filter(m => m.key === key)
             .findLast(m => semver.satisfies(m.version, version))
             .value()
-          return JSON.parse(elem.data)
+          return (elem) ? JSON.parse(elem.data) : undefined
         })
     },
 
