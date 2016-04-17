@@ -122,6 +122,20 @@ describe('Elastic search node interface', () => {
       })
   })
 
+  it('can get the newest node if no version is given', () => {
+    return allWaiting([
+      test.client.insert({id: 'test/node', version: '0.0.1'}),
+      test.client.insert({id: 'test/node', version: '0.0.2'}),
+      test.client.insert({id: 'test2/node', version: '0.0.1'})
+    ])
+      // flush the database to ensure the newly inserted value is in the search index
+      .then(test.client.flush)
+      .then(() => { return test.client.get('test/node') })
+      .then((node) => {
+        expect(node.version).to.equal('0.0.2')
+      })
+  })
+
   it('finds the predecessor of a node', () => {
     return allWaiting([
       test.client.insert({id: 'test/node', version: '0.0.1'}),

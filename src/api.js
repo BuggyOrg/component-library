@@ -83,14 +83,19 @@ export default function connect (host, prefix = '') {
     },
 
     get: (id, version) => {
-      return client.get(
-        {
-          index: nodesIndex,
-          type: id,
-          id: id + '@' + semver.clean(version)
-        }
-      )
-      .then(getSource)
+      var versionProm = Promise.resolve(version)
+      if (!version) {
+        versionProm = api.getLatestVersion(id)
+      }
+      return versionProm
+        .then((v) => client.get(
+          {
+            index: nodesIndex,
+            type: id,
+            id: id + '@' + semver.clean(v)
+          }
+        ))
+        .then(getSource)
     },
 
     versions: id => {
@@ -134,6 +139,11 @@ export default function connect (host, prefix = '') {
         })
     },
 
+    getLatestMeta: (node, key) => {
+      return api.getLatestVersion(node)
+      .then((version) => api.getMeta(node, version, key))
+    },
+
     getAllMeta: (node, version) => {
       return client.get(
         {
@@ -159,6 +169,10 @@ export default function connect (host, prefix = '') {
 
     getCode: (node, version, language) => {
       return api.getMeta(node, version, 'code/' + language)
+    },
+
+    getLatestCode: (node, language) => {
+      return api.getLatestMeta(node, 'code/' + language)
     },
 
     setConfig: (type, config, value) => {

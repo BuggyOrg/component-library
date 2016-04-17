@@ -12,6 +12,7 @@ import semver from 'semver'
 import path from 'path'
 import {elasticdump as Elasticdump} from 'elasticdump'
 import _ from 'lodash'
+import prompt from 'prompt-promise'
 
 var server = ''
 var defaultElastic = ' Defaults to BUGGY_COMPONENT_LIBRARY_HOST'
@@ -38,31 +39,109 @@ const edit = (file) => {
   })
 }
 
-const stdinOrEdit = (getFiletype, promiseAfter) => {
-  if (process.stdin.isTTY) {
-    log('no stdin input starting editor')
-    return new Promise((resolve) => {
-      if (typeof getFiletype !== 'function') {
-        resolve(tempfile(getFiletype))
+const editContent = (initContent, filetype, verify) => {
+  var tmpFile = tempfile(filetype)
+  fs.writeFileSync(tmpFile, initContent, 'utf8')
+  return edit(tmpFile)
+  .then((content) => {
+    if (!verify || verify(content)) {
+      fs.unlinkSync(tmpFile)
+      return content
+    } else {
+      return prompt('You entered a not valid document. Do you want to continue (c), reset (r) or abort (a): ')
+      .then((res) => {
+        if (res === 'c') {
+          return editContent(content, filetype, verify)
+        } else if (res === 'r') {
+          return editContent(initContent, filetype, verify)
+        } else {
+          throw new Error('User aborted editing.')
+        }
+      })
+    }
+  })
+}
+
+const emptyNode = {id: '', version: '', atomic: ''}
+
+const format = (obj) => {
+  return JSON.stringify(obj, null, 2)
+}
+
+const verifyNode = (node, client) => {
+  if (typeof (node) === 'string') {
+    try {
+      node = JSON.parse(node)
+    } catch (err) {
+      console.error('Could not parse JSON document')
+      return false
+    }
+  }
+  if (!semver.valid(node.version)) {
+    console.error('Invalid version given ', node.version)
+    return false
+  } else {
+    return client.list(node)
+    .then((nodeList) => {
+      if (_.find(nodeList, (n) => n.eq(n.version, node.version))) {
+        console.error('Version of node "' + node.id + '" already exists ', node.version)
+        return false
       } else {
-        getFiletype().then((filetype) => { resolve(tempfile(filetype)) })
-          .catch(() => resolve(tempfile('')))
+        return true
       }
     })
-    .then((tmpFile) => {
-      return edit(tmpFile).then((content) => {
-        fs.unlinkSync(tmpFile)
-        return content
+  }
+}
+
+const updateNode = (node, client) => {
+  return new Promise((resolve) => {
+    client.get(node)
+    .then((content) => {
+      content.version = `<update version: ${content.version}>`
+      resolve(format(content))
+    })
+    .catch(() => {
+      resolve(format(_.merge({}, emptyNode, {id: node})))
+    })
+  })
+  .then((initContent) => {
+    var verify = _.partial(verifyNode, _, client)
+    return stdinOrEdit('.json', initContent, verify)
+  })
+}
+
+const updateCode = (node, version, language, client) => {
+  return versionOrLatest(node, version, client)
+  .then((version) =>
+    new Promise((resolve) => {
+      return client.getCode(node, version, language)
+      .then((code) => resolve(code))
+      .catch(() => {
+        resolve('')
       })
     })
-    .then((content) => {
-      return promiseAfter(content)
+    .then((code) => {
+      return stdinOrEdit(() => client.getConfig('language', language), code)
+    })
+    .then((code) => client.setCode(node, version, language, code))
+  )
+}
+
+const stdinOrEdit = (getFiletype, content, verify) => {
+  if (process.stdin.isTTY) {
+    log('no stdin input starting editor')
+    var ft
+    if (typeof getFiletype !== 'function') {
+      ft = Promise.resolve(getFiletype)
+    } else {
+      ft = getFiletype()
+    }
+    return ft.then((filetype) => {
+      return editContent(content, filetype, verify)
     })
   } else {
-    return getStdin().then((content) => {
-      // we got something on stdin, don't open the editor
-      return promiseAfter(content)
-    })
+    // we got something on stdin, don't open the editor
+    return getStdin()
   }
 }
 
@@ -152,7 +231,27 @@ program
   .description('Add a node to the component library. It opens an editor (env EDITOR) window or you can pipe the node into it.')
   .action(() => {
     var client = connect(program.elastic, program.prefix)
-    stdinOrEdit('.json', (content) => {
+    stdinOrEdit('.json', _.partial(verifyNode, _, client))
+    .then((content) => {
+      var node = JSON.parse(content)
+      return client.insert(node).then(() => node)
+    })
+    .then((node) => {
+      log(chalk.bgGreen('Successfully stored node with id: ' + node.id + '@' + node.version))
+    })
+    .catch((err) => {
+      console.error(chalk.red(err.message))
+      process.exit(-1)
+    })
+  })
+
+program
+  .command('update <node-id>')
+  .description('Add a node to the component library. It opens an editor (env EDITOR) window or you can pipe the node into it.')
+  .action((node) => {
+    var client = connect(program.elastic, program.prefix)
+    updateNode(node, client)
+    .then((content) => {
       var node = JSON.parse(content)
       return client.insert(node).then(() => node)
     })
@@ -170,10 +269,7 @@ program
   .description('Add set code for a node in a specific programming language. It opens an editor (env EDITOR) window or you can pipe the code into it.')
   .action((node, language, version) => {
     var client = connect(program.elastic, program.prefix)
-    stdinOrEdit(() => client.getConfig('language', language),
-      (content) =>
-        versionOrLatest(node, version, client)
-        .then(nodeVersion => client.setCode(node, nodeVersion, language, content)))
+    updateCode(node, version, language, client)
     .then(() => {
       log(chalk.bgGreen('Successfully stored code for node: ' + node))
     })
@@ -205,17 +301,17 @@ program
   .description('Set the meta information (as json) for a node for a specific key. It opens an editor (env EDITOR) window or you can pipe the json document into it. If the version is not specified it sets the meta information on the latest version.')
   .action((node, key, version) => {
     var client = connect(program.elastic, program.prefix)
-    stdinOrEdit('.json',
-      (content) => {
-        var data
-        try {
-          data = JSON.parse(content)
-        } catch (err) {
-          throw new Error('Unable parse JSON data. Please provide a JSON document.')
-        }
-        return versionOrLatest(node, version, client)
-        .then(nodeVersion => client.setMeta(node, nodeVersion, key, data))
-      })
+    stdinOrEdit('.json')
+    .then((content) => {
+      var data
+      try {
+        data = JSON.parse(content)
+      } catch (err) {
+        throw new Error('Unable parse JSON data. Please provide a JSON document.')
+      }
+      return versionOrLatest(node, version, client)
+      .then(nodeVersion => client.setMeta(node, nodeVersion, key, data))
+    })
     .then(() => console.log('Successfully change meta key "' + key + '" of "' + node + '"'))
     .catch(err => {
       console.error(chalk.red(err.message))
