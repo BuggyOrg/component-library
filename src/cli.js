@@ -122,8 +122,15 @@ const updateCode = (node, version, language, client) => {
     })
     .then((code) => {
       return stdinOrEdit(() => client.getConfig('language', language), code)
+      .then((new_code) => {
+        if (code !== new_code) {
+          client.setCode(node, version, language, new_code)
+          return 1 // tell the caller that a change was made
+        } else {
+          return 0 // tell the caller that no change was made
+        }
+      })
     })
-    .then((code) => client.setCode(node, version, language, code))
   )
 }
 
@@ -270,8 +277,12 @@ program
   .action((node, language, version) => {
     var client = connect(program.elastic, program.prefix)
     updateCode(node, version, language, client)
-    .then(() => {
-      log(chalk.bgGreen('Successfully stored code for node: ' + node))
+    .then((changes_were_made) => {
+      if (changes_were_made) {
+        log(chalk.bgGreen('Successfully stored code for node: ' + node))
+      } else {
+        log(chalk.bgGreen('No changes were made.'))
+      }
     })
     .catch((err) => {
       console.error(chalk.red(err.message))
