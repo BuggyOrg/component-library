@@ -50,6 +50,7 @@ const editContent = (initContent, filetype, verify) => {
     } else {
       return prompt('You entered a not valid document. Do you want to continue (c), reset (r) or abort (a): ')
       .then((res) => {
+        process.stdin.pause()
         if (res === 'c') {
           return editContent(content, filetype, verify)
         } else if (res === 'r') {
