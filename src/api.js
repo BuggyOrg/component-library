@@ -218,7 +218,11 @@ export default function connect (host, prefix = '') {
     getLatestVersion: node => {
       return api.list(node)
       .then(list => {
-        return _.last(list.sort((a, b) => { return semver.compare(a.version, b.version) })).version
+        var latest = _.last(list.sort((a, b) => { return semver.compare(a.version, b.version) }))
+        if (latest && latest.version) {
+          return latest.version
+        }
+        return '0.1.0'
       })
     },
 
