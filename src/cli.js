@@ -217,6 +217,27 @@ program
   })
 
 program
+  .command('list')
+  .option('-n, --limit <limit>', 'The number of components to list.', Number, 50)
+  .option('-o, --offset <offset>', 'The number of components that should be skipped.', Number, 0)
+  .option('-h, --human-readable', 'Print the output in human-readable format.')
+  .description('Get a list of all components.')
+  .action((options) => {
+    var client = connect(program.elastic, program.prefix)
+    client.queryAll({ limit: options.limit, offset: options.offset }).then((nodes) => {
+      if (options.humanReadable) {
+        nodes.forEach((n) => console.log(`${n.id}@${n.version}`))
+      } else {
+        printJSON(nodes)
+      }
+    })
+    .catch(err => {
+      console.error(chalk.red(err.message))
+      process.exit(-1)
+    })
+  })
+
+program
   .command('get <node-id> [version]')
   .description('Get a node document by the id of the node. If the version is not specified it prints automatically the latest version')
   .action((nodeID, version) => {

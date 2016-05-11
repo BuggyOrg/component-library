@@ -72,6 +72,22 @@ export default function connect (host, prefix = '') {
         .then(mapHits)
     },
 
+    queryAll: ({limit, offset}) => {
+      return client.search(
+        {
+          index: nodesIndex,
+          size: limit,
+          from: offset,
+          body: {
+            query: {
+              match_all: {}
+            }
+          }
+        })
+        .then(extractHits)
+        .then(mapHits)
+    },
+
     list: id => {
       return client.search(
         {

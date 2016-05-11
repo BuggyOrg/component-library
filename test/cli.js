@@ -211,4 +211,29 @@ describe('Component library CLI', () => {
       expect(data).to.deep.equal('val')
     })
   })
+  
+  it('gets a list of all nodes, supporting limit and offset options', () => {
+    return test.client.insert({
+      id: 'test/node',
+      version: '0.0.1'
+    })
+    .then(() => test.client.insert({
+      id: 'test/node',
+      version: '0.0.2'
+    }))
+    .then(() => runCLI('list --limit 2'))
+    .then(stdout => {
+      const nodes = JSON.parse(stdout)
+      expect(nodes).to.have.lengthOf(2)
+      
+      const secondNode = nodes[1]
+      
+      return runCLI('list --limit 2 --offset 1')
+      .then(stdout => {
+        var nodes = JSON.parse(stdout)
+        expect(nodes).to.have.lengthOf(1)
+        expect(nodes[0]).to.deep.equal(secondNode)
+      })
+    })
+  })
 })
