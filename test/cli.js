@@ -211,7 +211,7 @@ describe('Component library CLI', () => {
       expect(data).to.deep.equal('val')
     })
   })
-  
+
   it('gets a list of all nodes, supporting limit and offset options', () => {
     return test.client.insert({
       id: 'test/node',
@@ -221,13 +221,14 @@ describe('Component library CLI', () => {
       id: 'test/node',
       version: '0.0.2'
     }))
+    .then(test.client.flush)
     .then(() => runCLI('list --limit 2'))
     .then(stdout => {
       const nodes = JSON.parse(stdout)
       expect(nodes).to.have.lengthOf(2)
-      
+
       const secondNode = nodes[1]
-      
+
       return runCLI('list --limit 2 --offset 1')
       .then(stdout => {
         var nodes = JSON.parse(stdout)

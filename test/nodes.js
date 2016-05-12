@@ -149,4 +149,28 @@ describe('Elastic search node interface', () => {
         expect(pred.version).to.equal('0.0.2')
       })
   })
+
+  it('gets a list of all nodes, supporting limit and offset options', () => {
+    return test.client.insert({
+      id: 'test/node',
+      version: '0.0.1'
+    })
+    .then(() => test.client.insert({
+      id: 'test/node',
+      version: '0.0.2'
+    }))
+    .then(test.client.flush)
+    .then(() => test.client.queryAll({ limit: 2 }))
+    .then(nodes => {
+      expect(nodes).to.have.lengthOf(2)
+
+      const secondNode = nodes[1]
+
+      return test.client.queryAll({ limit: 2, offset: 1 })
+      .then(nodes => {
+        expect(nodes).to.have.lengthOf(1)
+        expect(nodes[0]).to.deep.equal(secondNode)
+      })
+    })
+  })
 })
