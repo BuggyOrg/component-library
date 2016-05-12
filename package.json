@@ -10,7 +10,7 @@
     "test": "node node_modules/standard/bin/cmd.js src/**/*.js && babel-node scripts/setup_elastic.js && node_modules/mocha/bin/mocha --compilers js:babel-register --require babel-polyfill --timeout 20000; RET=$?; node_modules/.bin/babel-node scripts/stop_elastic.js; test \"$RET\" -eq 0",
     "build": "gulp",
     "elastic": "babel-node scripts/setup_elastic_p.js",
-    "export": "mkdir -p backups && rm backups/dump.js && elasticdump --input=$BUGGY_COMPONENT_LIBRARY_HOST --output=backups/dump.js --all",
+    "export": "mkdir -p backups && touch backups/dump.js && rm backups/dump.js && elasticdump --input=$BUGGY_COMPONENT_LIBRARY_HOST --output=backups/dump.js --all",
     "import": "elasticdump --input=backups/dump.js --output=http://localhost:9200 --all --bulk"
   },
   "repository": {
