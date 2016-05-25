@@ -260,7 +260,7 @@ program
   .description('Add a node to the component library. It opens an editor (env EDITOR) window or you can pipe the node into it.')
   .action(() => {
     var client = connect(program.elastic, program.prefix)
-    stdinOrEdit('.json', _.partial(verifyNode, _, client))
+    stdinOrEdit('.json', format(emptyNode), _.partial(verifyNode, _, client))
     .then((content) => {
       var node = JSON.parse(content)
       return client.insert(node).then(() => node)
