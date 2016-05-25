@@ -122,6 +122,9 @@ const updateCode = (node, version, language, client) => {
       })
     })
     .then((code) => {
+      if (code === 'undefined') {
+        code = ''
+      }
       return stdinOrEdit(() => client.getConfig('language', language), code)
       .then((new_code) => {
         if (code !== new_code) {
