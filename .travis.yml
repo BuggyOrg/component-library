@@ -1,10 +1,9 @@
 language: node_js
 node_js:
-  - "4"
-  - "5"
-#services:
-#  - "elasticsearch"
-#before_script:
-#  - sleep 10
+- '4'
+- '5'
 after_failure:
-  - curl 'localhost:9200/_cat/health?v'
+- curl 'localhost:9200/_cat/health?v'
+notifications:
+  slack:
+    secure: h2T15LxdNM9CGoYxhteR4Cod9T+8IDHaqLyb7hUnJyFrWYFw4l2XhjaFvSwFrbFyKw/Q5LAcupKQ66My5GrYKIMtKOMjMoLZyxeMabHRY5q++wqiisShtX8lAe7Yt7/YyeMbW/lA4pT1Rr+uhNh4eYIx6SLAo2ipNPmMOHyyFSdsRg3TUYww199y/lxDmFvbAnUnZ9Ef7tRXtUIq16z8LX7Vs0Ddwzc7wLMel+znrh6TqLVqL7oznf6JMxcna82ItQnflsVM9k/eZRjBa1XjegtDDMJTEPt89SYysaqQ8P99WTfyGpXvBDbRw2pijB16rBCOaFLCPRDW+xy2uEfI4fyDwetns4MgVgePVTF4E9aldqW+Vp/eEofRGYl+RPg0tWG4cvGnwspc+ODViZk38KlvDRG5F272H4n8Rvo9K7A5iO/Ot2Kjou0uzRTAYqWuISBkdNO2YxO4hgSX+g9KGU0CnInCLKyOl91fpz7NkTRJSbGQSxfwbrk2Va0MGp9DvbR92h52YqKQb8/9bn0FSa+7r4dER7Qc2VvXeHAE6cYmIExhVS5mi/3adwRkdprCWTsXV4NBYxAsYc2D+piwppZnYj9NmPPtZKSzWuLjEECgWpSQiULMRvOWsuL5CFnWJaWc98k527BjWkUyp3RTo7jlNC2E9qW15sfFBSJl2nI=
