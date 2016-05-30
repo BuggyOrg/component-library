@@ -110,8 +110,10 @@ export default function connect (host, prefix = '') {
             type: id,
             id: id + '@' + semver.clean(v)
           }
-        ))
-        .then(getSource)
+        )).catch((error) => {
+          error.message = '\'' + id + '\' ' + error.message
+          throw error
+        }).then(getSource)
     },
 
     versions: id => {
@@ -234,6 +236,9 @@ export default function connect (host, prefix = '') {
     getLatestVersion: node => {
       return api.list(node)
       .then(list => {
+        if (list.length === 0) {
+          return ''
+        }
         return _.last(list.sort((a, b) => { return semver.compare(a.version, b.version) })).version
       })
     },
