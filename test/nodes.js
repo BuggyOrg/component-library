@@ -173,4 +173,50 @@ describe('Elastic search node interface', () => {
       })
     })
   })
+
+  describe('Argument ordering', () => {
+    it('automatically adds an argument ordering if none is given', () => {
+      return test.client.insert({
+        id: 'test/node',
+        version: '0.1.0',
+        inputPorts: {a: 'b', c: 'd'},
+        outputPorts: {e: 'f'}
+      })
+      .then(test.client.flush)
+      .then(() => test.client.get('test/node'))
+      .then((node) => {
+        expect(node).to.have.property('settings')
+        expect(node.settings).to.have.property('argumentOrdering')
+        expect(node.settings.argumentOrdering).to.have.length(3)
+        expect(node.settings.argumentOrdering).to.have.members(['a', 'c', 'e'])
+      })
+    })
+
+    it('complains if an existing argument ordering misses ports', () => {
+      expect(() => test.client.insert({
+        id: 'test/node',
+        version: '0.1.0',
+        inputPorts: {a: 'b', c: 'd'},
+        outputPorts: {e: 'f'},
+        settings: { argumentOrdering: [] }
+      })).to.throw(Error, /"a"/)
+    })
+
+    it('complains if an existing argument ordering has not existing ports', () => {
+      expect(() => test.client.insert({
+        id: 'test/node',
+        version: '0.1.0',
+        inputPorts: {a: 'b', c: 'd'},
+        outputPorts: {e: 'f'},
+        settings: { argumentOrdering: ['a', 'c', 'e', 'f'] }
+      })).to.throw(Error, /"f"/)
+      expect(() => test.client.insert({
+        id: 'test/node',
+        version: '0.1.0',
+        inputPorts: {a: 'b', c: 'd'},
+        outputPorts: {e: 'f'},
+        settings: { argumentOrdering: ['a', 'c', 'f'] }
+      })).to.throw(Error, /(\["f"\].+?\["e"\])|(\["e"\].+?\["f"\])/) // test whether f and e are mentioned in the error message
+    })
+  })
 })

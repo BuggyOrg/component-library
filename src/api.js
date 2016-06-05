@@ -38,6 +38,22 @@ const clearIndex = function (api, client, index) {
     .then(() => api.flush())
 }
 
+const ensureArguments = (node) => {
+  if (node.settings && node.settings.argumentOrdering) {
+    // check if ordering is well defined
+    var diff = _.difference(node.settings.argumentOrdering, _.keys(_.merge({}, node.inputPorts, node.outputPorts)))
+    var diffBack = _.difference(_.keys(_.merge({}, node.inputPorts, node.outputPorts)), node.settings.argumentOrdering)
+    if (diff.length > 0 || diffBack.length > 0) {
+      var d1 = (diff.length > 0) ? ' The arguments ' + JSON.stringify(diff) + ' are in the argument ordering but no ports.' : ''
+      var d2 = (diffBack.length > 0) ? ' The ports ' + JSON.stringify(diffBack) + ' are not in the argument ordering.' : ''
+      throw new Error(node.id + ' has a broken argument ordering.' + d1 + d2)
+    }
+  } else {
+    node = _.merge({}, node, {settings: {argumentOrdering: _.keys(_.merge({}, node.inputPorts, node.outputPorts))}})
+  }
+  return node
+}
+
 export default function connect (host, prefix = '') {
   var client = new elastic.Client({
     host: host
@@ -244,6 +260,7 @@ export default function connect (host, prefix = '') {
     },
 
     insert: (node, copyMetadata = true) => {
+      node = ensureArguments(node)
       var isValid = valid(node)
       if (isValid.valid === true) {
         var normNode = normalizeNode(node)
