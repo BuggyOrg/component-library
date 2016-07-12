@@ -3,6 +3,7 @@
 import * as elastic from 'elasticsearch'
 import _ from 'lodash'
 import semver from 'semver'
+import * as jsonDriver from './driver/json'
 
 const extractHits = _.partial(_.get, _, 'hits.hits')
 const getSource = _.partial(_.get, _, '_source')
@@ -52,6 +53,15 @@ const ensureArguments = (node) => {
     node = _.merge({}, node, {settings: {argumentOrdering: _.keys(_.merge({}, node.inputPorts, node.outputPorts))}})
   }
   return node
+}
+
+const driverFor = (client) => {
+  return jsonDriver
+}
+
+export function getConfig (client, cfg) {
+  var driver = driverFor(client)
+  return driver.getConfig(client, cfg)
 }
 
 export default function connect (host, prefix = '') {
